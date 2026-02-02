@@ -4,7 +4,7 @@ export const statisticsService = {
   // 월별 지출 통계 조회
   async getMonthlyExpense(userId, year, month) {
     try {
-      const response = await api.get(`/statistics/monthly/${userId}?year=${year}&month=${month}`);
+      const response = await api.get(`/statistics/monthly?year=${year}&month=${month}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
@@ -14,7 +14,7 @@ export const statisticsService = {
   // 지출 분석 조회
   async getExpenseAnalysis(userId) {
     try {
-      const response = await api.get(`/statistics/analysis/${userId}`);
+      const response = await api.get(`/statistics/analysis`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;

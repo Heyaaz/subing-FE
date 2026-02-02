@@ -9,5 +9,7 @@ export const SERVICE_CATEGORIES = [
 	{ value: 'CLOUD', label: '클라우드' },
 	{ value: 'DESIGN', label: '디자인' },
 	{ value: 'DELIVERY', label: '배달' },
+	{ value: 'PRODUCTIVITY', label: '생산성' },
+	{ value: 'NEWS_READING', label: '뉴스·독서' },
 	{ value: 'ETC', label: '기타' },
 ];

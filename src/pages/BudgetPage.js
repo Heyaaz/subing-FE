@@ -29,7 +29,7 @@ const BudgetPage = () => {
     try {
       setLoading(true);
       const response = await budgetService.getAllBudgets(user.id);
-      setBudgets(response.data || []);
+      setBudgets(response || []);
     } catch (error) {
       console.error('Failed to fetch budgets:', error);
     } finally {
@@ -41,7 +41,7 @@ const BudgetPage = () => {
     if (!user?.id) return;
     try {
       const response = await budgetService.getCurrentMonthBudget(user.id);
-      setCurrentBudget(response.data);
+      setCurrentBudget(response);
     } catch (error) {
       console.error('Failed to fetch current budget:', error);
     }
@@ -138,11 +138,11 @@ const BudgetPage = () => {
           </Button>
         </div>
 
-        {/* 현재 월 예산 카드 */}
+        {/* 현재 월 예산 카드 (당월 기준 표시) */}
         {currentBudget && (
           <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl shadow-lg p-8 mb-8 text-white">
             <h2 className="text-lg font-medium mb-3 opacity-90">
-              {currentBudget.year}년 {currentBudget.month}월 예산
+              {new Date().getFullYear()}년 {new Date().getMonth() + 1}월 예산
             </h2>
             <p className="text-5xl font-bold mb-4">{formatCurrency(currentBudget.monthlyLimit)}</p>
             <p className="text-sm opacity-90">

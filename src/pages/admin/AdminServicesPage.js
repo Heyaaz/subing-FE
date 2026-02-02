@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getAllServices, createService, updateService, deleteService } from '../../services/adminService';
 import { Button, Select } from '../../components/common';
 import Loading from '../../components/Loading';
+import { SERVICE_CATEGORIES } from '../../constants/serviceCategories';
 
 const AdminServicesPage = () => {
   const navigate = useNavigate();
@@ -12,14 +13,12 @@ const AdminServicesPage = () => {
   const [editingService, setEditingService] = useState(null);
   const [formData, setFormData] = useState({
     serviceName: '',
-    category: 'STREAMING',
+    category: 'OTT',
     iconUrl: '',
     officialUrl: '',
     description: '',
     isActive: true,
   });
-
-  const categories = ['STREAMING', 'MUSIC', 'STORAGE', 'PRODUCTIVITY', 'FITNESS', 'EDUCATION', 'SHOPPING', 'DELIVERY', 'ETC'];
 
   useEffect(() => {
     fetchServices();
@@ -44,7 +43,7 @@ const AdminServicesPage = () => {
     setEditingService(null);
     setFormData({
       serviceName: '',
-      category: 'STREAMING',
+      category: 'OTT',
       iconUrl: '',
       officialUrl: '',
       description: '',
@@ -216,7 +215,7 @@ const AdminServicesPage = () => {
                   setFormData({ ...formData, category: e.target.value })
                 }
                 label="카테고리 *"
-                options={categories.map((cat) => ({ value: cat, label: cat }))}
+                options={SERVICE_CATEGORIES}
               />
 
               <div>

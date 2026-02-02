@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import preferenceService from '../services/preferenceService';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/common';
+import { SERVICE_CATEGORIES } from '../constants/serviceCategories';
 // import TierLimitModal from '../components/TierLimitModal'; // 임시 숨김
 
 const QuizPage = () => {
@@ -78,17 +79,17 @@ const QuizPage = () => {
             <h2 className="text-2xl font-bold mb-6 text-gray-900">관심 분야를 선택해주세요</h2>
             <p className="text-gray-600 mb-6">복수 선택 가능합니다</p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {['OTT', 'MUSIC', 'CLOUD', 'AI', 'DESIGN', 'DELIVERY', 'ETC'].map(interest => (
+              {SERVICE_CATEGORIES.map(({ value, label }) => (
                 <button
-                  key={interest}
-                  onClick={() => handleInterestToggle(interest)}
+                  key={value}
+                  onClick={() => handleInterestToggle(value)}
                   className={`p-6 rounded-lg border-2 transition font-semibold ${
-                    quizData.interests.includes(interest)
+                    quizData.interests.includes(value)
                       ? 'border-primary-500 bg-primary-50 text-primary-700'
                       : 'border-gray-200 hover:border-gray-300 text-gray-700'
                   }`}
                 >
-                  {interest}
+                  {label}
                 </button>
               ))}
             </div>

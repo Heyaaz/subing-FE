@@ -4,6 +4,7 @@ import { subscriptionService } from '../services/subscriptionService';
 import { serviceService } from '../services/serviceService';
 import { Button, Card, Alert, EmptyState, Select } from '../components/common';
 import Loading from '../components/Loading';
+import { SERVICE_CATEGORIES } from '../constants/serviceCategories';
 
 const SubscriptionPage = () => {
   const [subscriptions, setSubscriptions] = useState([]);
@@ -216,13 +217,7 @@ const SubscriptionPage = () => {
               label="카테고리"
               options={[
                 { value: '', label: '전체' },
-                { value: 'OTT', label: 'OTT' },
-                { value: 'AI', label: 'AI' },
-                { value: 'MUSIC', label: '음악' },
-                { value: 'CLOUD', label: '클라우드' },
-                { value: 'DESIGN', label: '디자인' },
-                { value: 'DELIVERY', label: '배달' },
-                { value: 'ETC', label: '기타' },
+                ...SERVICE_CATEGORIES,
               ]}
             />
 

@@ -28,15 +28,15 @@ const StatisticsPage = () => {
       setLoading(true);
       const [monthlyResponse, analysisResponse, trendData] = await Promise.all([
         statisticsService.getMonthlyExpense(user.id, selectedYear, selectedMonth),
-        statisticsService.getExpenseAnalysis(user.id),
+        statisticsService.getExpenseAnalysis(user.id, selectedYear, selectedMonth),
         statisticsService.getYearlyTrend(user.id, selectedYear)
       ]);
 
-      setMonthlyExpense(monthlyResponse.data);
-      setExpenseAnalysis(analysisResponse.data);
-      setYearlyTrend(trendData.map(item => ({
+      setMonthlyExpense(monthlyResponse);
+      setExpenseAnalysis(analysisResponse);
+      setYearlyTrend((trendData || []).map(item => ({
         month: item.month,
-        amount: item.totalAmount
+        amount: item.totalAmount ?? 0
       })));
     } catch (error) {
       setError('통계 데이터를 불러오지 못했어요. 다시 시도해주세요.');
@@ -67,7 +67,7 @@ const StatisticsPage = () => {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-              className="input-field"
+              className="input-field min-w-[8rem] w-32"
             >
               {Array.from({ length: 5 }, (_, i) => {
                 const year = new Date().getFullYear() - i;
@@ -115,7 +115,7 @@ const StatisticsPage = () => {
             <Card>
               <h3 className="text-sm font-medium text-gray-600 mb-2">활성 구독 수</h3>
               <p className="text-4xl font-bold text-success-600">
-                {monthlyExpense.activeSubscriptionCount}
+                {monthlyExpense.activeSubscriptions}
                 <span className="text-lg text-gray-500 ml-1">개</span>
               </p>
             </Card>
@@ -123,8 +123,8 @@ const StatisticsPage = () => {
             <Card>
               <h3 className="text-sm font-medium text-gray-600 mb-2">평균 구독 비용</h3>
               <p className="text-4xl font-bold text-info-600">
-                {monthlyExpense.activeSubscriptionCount > 0
-                  ? formatCurrency(monthlyExpense.totalAmount / monthlyExpense.activeSubscriptionCount)
+                {monthlyExpense.activeSubscriptions > 0
+                  ? formatCurrency(monthlyExpense.totalAmount / monthlyExpense.activeSubscriptions)
                   : '0'
                 }
                 <span className="text-lg text-gray-500 ml-1">원</span>
@@ -171,7 +171,7 @@ const StatisticsPage = () => {
                         {category.serviceNames?.join(', ') || '서비스 없음'}
                       </span>
                       <span className="font-medium text-gray-900">
-                        {formatCurrency(category.totalAmount)}원
+                        {formatCurrency(category.amount)}원
                       </span>
                     </div>
                   </div>

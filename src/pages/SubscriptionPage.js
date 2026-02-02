@@ -27,10 +27,14 @@ const SubscriptionPage = () => {
     serviceId: '',
     planName: '',
     monthlyPrice: '',
+    currency: 'KRW',
     billingCycle: 'MONTHLY',
     billingDate: '',
+    startMonth: '',
     notes: ''
   });
+  const [serviceSearchQuery, setServiceSearchQuery] = useState('');
+  const [serviceDropdownOpen, setServiceDropdownOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -76,24 +80,59 @@ const SubscriptionPage = () => {
     }));
   };
 
+  const filteredServices = services.filter(s =>
+    (s.name || s.serviceName || '').toLowerCase().includes((serviceSearchQuery || '').toLowerCase())
+  );
+  const startYear = formData.startMonth ? formData.startMonth.slice(0, 4) : '';
+  const startMonthNum = formData.startMonth ? formData.startMonth.slice(5, 7) : '';
+  const currentYear = new Date().getFullYear();
+  const yearOptions = [{ value: '', label: '선택' }, ...Array.from({ length: 10 }, (_, i) => currentYear - 9 + i).map(y => ({ value: String(y), label: `${y}년` }))];
+  const monthOptions = [{ value: '', label: '선택' }, ...Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1).padStart(2, '0'), label: `${i + 1}월` }))];
+  const handleStartYearChange = (e) => {
+    const y = e.target.value;
+    setFormData(prev => ({ ...prev, startMonth: y ? `${y}-${prev.startMonth?.slice(5, 7) || '01'}` : '' }));
+  };
+  const handleStartMonthChange = (e) => {
+    const m = e.target.value;
+    setFormData(prev => ({ ...prev, startMonth: m ? `${prev.startMonth?.slice(0, 4) || currentYear}-${m}` : (prev.startMonth?.slice(0, 4) ? `${prev.startMonth.slice(0, 4)}-01` : '') }));
+  };
+  const selectedServiceName = formData.serviceId
+    ? (services.find(s => String(s.id) === String(formData.serviceId))?.name || services.find(s => String(s.id) === String(formData.serviceId))?.serviceName || '')
+    : '';
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.serviceId) {
+      setError('서비스를 선택해주세요.');
+      return;
+    }
+    if (!formData.startMonth) {
+      setError('시작월을 선택해주세요.');
+      return;
+    }
     try {
-      await subscriptionService.createSubscription({
+      setError(null);
+      const payload = {
         ...formData,
         userId: user.id,
-        monthlyPrice: parseInt(formData.monthlyPrice),
-        billingDate: parseInt(formData.billingDate)
-      });
+        monthlyPrice: parseInt(formData.monthlyPrice, 10),
+        currency: formData.currency || 'KRW',
+        billingDate: parseInt(formData.billingDate, 10),
+        startedAt: formData.startMonth
+      };
+      await subscriptionService.createSubscription(payload);
       setShowAddForm(false);
       setFormData({
         serviceId: '',
         planName: '',
         monthlyPrice: '',
+        currency: 'KRW',
         billingCycle: 'MONTHLY',
         billingDate: '',
+        startMonth: '',
         notes: ''
       });
+      setServiceSearchQuery('');
       loadSubscriptions();
     } catch (error) {
       setError('구독을 추가하지 못했어요. 다시 시도해주세요.');
@@ -141,12 +180,16 @@ const SubscriptionPage = () => {
 
   const handleEdit = (subscription) => {
     setEditingSubscription(subscription);
+    const startedAt = subscription.startedAt;
+    const startMonth = startedAt ? String(startedAt).slice(0, 7) : '';
     setFormData({
-      serviceId: subscription.serviceId || '',
+      serviceId: subscription.serviceId || subscription.service?.id || '',
       planName: subscription.planName || '',
       monthlyPrice: subscription.monthlyPrice || '',
+      currency: subscription.currency || 'KRW',
       billingCycle: subscription.billingCycle || 'MONTHLY',
       billingDate: subscription.billingDate || '',
+      startMonth,
       notes: subscription.notes || ''
     });
     setShowEditForm(true);
@@ -154,20 +197,30 @@ const SubscriptionPage = () => {
 
   const handleUpdate = async (e) => {
     e.preventDefault();
+    if (!formData.startMonth) {
+      setError('시작월을 선택해주세요.');
+      return;
+    }
     try {
-      await subscriptionService.updateSubscription(editingSubscription.id, {
+      setError(null);
+      const payload = {
         ...formData,
-        monthlyPrice: parseInt(formData.monthlyPrice),
-        billingDate: parseInt(formData.billingDate)
-      });
+        monthlyPrice: parseInt(formData.monthlyPrice, 10),
+        currency: formData.currency || 'KRW',
+        billingDate: parseInt(formData.billingDate, 10),
+        startedAt: formData.startMonth
+      };
+      await subscriptionService.updateSubscription(editingSubscription.id, payload);
       setShowEditForm(false);
       setEditingSubscription(null);
       setFormData({
         serviceId: '',
         planName: '',
         monthlyPrice: '',
+        currency: 'KRW',
         billingCycle: 'MONTHLY',
         billingDate: '',
+        startMonth: '',
         notes: ''
       });
       loadSubscriptions();
@@ -184,10 +237,27 @@ const SubscriptionPage = () => {
       serviceId: '',
       planName: '',
       monthlyPrice: '',
+      currency: 'KRW',
       billingCycle: 'MONTHLY',
       billingDate: '',
+      startMonth: '',
       notes: ''
     });
+  };
+
+  const openAddForm = () => {
+    setFormData({
+      serviceId: '',
+      planName: '',
+      monthlyPrice: '',
+      currency: 'KRW',
+      billingCycle: 'MONTHLY',
+      billingDate: '',
+      startMonth: '',
+      notes: ''
+    });
+    setServiceSearchQuery('');
+    setShowAddForm(true);
   };
 
   if (loading) {
@@ -200,7 +270,7 @@ const SubscriptionPage = () => {
           <h1 className="text-3xl font-bold text-gray-900">내 구독</h1>
           <Button
             variant="primary"
-            onClick={() => setShowAddForm(true)}
+            onClick={openAddForm}
           >
             구독 추가하기
           </Button>
@@ -312,11 +382,16 @@ const SubscriptionPage = () => {
 
               <div className="space-y-2 mb-4 pt-4 border-t border-gray-100">
                 <p className="text-sm text-gray-600">
-                  <span className="font-medium">월 요금:</span> {subscription.monthlyPrice?.toLocaleString()}원
+                  <span className="font-medium">월 요금:</span> {subscription.monthlyPrice?.toLocaleString()}{subscription.currency === 'USD' ? '달러' : '원'}
                 </p>
                 <p className="text-sm text-gray-600">
                   <span className="font-medium">결제일:</span> 매월 {subscription.billingDate}일
                 </p>
+                {subscription.startedAt && (
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">시작월:</span> {String(subscription.startedAt).slice(0, 7).replace(/-/, '.')}
+                  </p>
+                )}
                 {subscription.notes && (
                   <p className="text-sm text-gray-600">
                     <span className="font-medium">메모:</span> {subscription.notes}
@@ -351,7 +426,7 @@ const SubscriptionPage = () => {
             title="등록된 구독이 없어요"
             description="첫 구독을 추가하고 관리를 시작해보세요"
             action={
-              <Button variant="primary" onClick={() => setShowAddForm(true)}>
+              <Button variant="primary" onClick={openAddForm}>
                 구독 추가하기
               </Button>
             }
@@ -365,20 +440,42 @@ const SubscriptionPage = () => {
               <h2 className="text-2xl font-bold mb-6 text-gray-900">구독 추가하기</h2>
               
               <form onSubmit={handleSubmit} className="space-y-4">
-                <Select
-                  name="serviceId"
-                  value={formData.serviceId}
-                  onChange={handleChange}
-                  label="서비스 선택"
-                  placeholder="서비스를 선택하세요"
-                  options={[
-                    { value: '', label: '서비스를 선택하세요' },
-                    ...services.map(service => ({
-                      value: service.id,
-                      label: service.name,
-                    }))
-                  ]}
-                />
+                <div className="relative">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    서비스 선택 *
+                  </label>
+                  <input
+                    type="text"
+                    value={serviceDropdownOpen ? serviceSearchQuery : (selectedServiceName || '')}
+                    onChange={(e) => {
+                      setServiceSearchQuery(e.target.value);
+                      setServiceDropdownOpen(true);
+                      if (!e.target.value) setFormData(prev => ({ ...prev, serviceId: '' }));
+                    }}
+                    onFocus={() => setServiceDropdownOpen(true)}
+                    onBlur={() => setTimeout(() => setServiceDropdownOpen(false), 200)}
+                    className="input-field"
+                    placeholder="서비스명 검색 또는 선택"
+                    autoComplete="off"
+                  />
+                  {serviceDropdownOpen && (
+                    <ul className="absolute z-10 mt-1 w-full max-h-48 overflow-auto bg-white border border-gray-200 rounded-lg shadow-lg">
+                      {filteredServices.length === 0 ? (
+                        <li className="px-3 py-2 text-gray-500 text-sm">검색 결과 없음</li>
+                      ) : (
+                        filteredServices.map(service => (
+                          <li
+                            key={service.id}
+                            className="px-3 py-2 cursor-pointer hover:bg-gray-100 text-gray-900"
+                            onMouseDown={(e) => { e.preventDefault(); setFormData(prev => ({ ...prev, serviceId: service.id })); setServiceSearchQuery(''); setServiceDropdownOpen(false); }}
+                          >
+                            {service.name || service.serviceName}
+                          </li>
+                        ))
+                      )}
+                    </ul>
+                  )}
+                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -390,31 +487,43 @@ const SubscriptionPage = () => {
                     value={formData.planName}
                     onChange={handleChange}
                     className="input-field"
-                    placeholder="요금제명을 입력하세요"
-                    required
+                    placeholder="요금제명을 입력하세요 (선택사항)"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    월 요금
+                    월 요금 ({formData.currency === 'USD' ? '달러' : '원'}) *
                   </label>
-                  <input
-                    type="number"
-                    name="monthlyPrice"
-                    value={formData.monthlyPrice}
-                    onChange={handleChange}
-                    className="input-field"
-                    placeholder="월 요금을 입력하세요"
-                    required
-                  />
+                  <div className="flex gap-2">
+                    <Select
+                      name="currency"
+                      value={formData.currency}
+                      onChange={handleChange}
+                      options={[
+                        { value: 'KRW', label: '원' },
+                        { value: 'USD', label: '달러' },
+                      ]}
+                      className="w-24 shrink-0"
+                    />
+                    <input
+                      type="number"
+                      name="monthlyPrice"
+                      value={formData.monthlyPrice}
+                      onChange={handleChange}
+                      className="input-field flex-1"
+                      placeholder={formData.currency === 'USD' ? '달러 금액 입력' : '원 금액 입력'}
+                      min="1"
+                      required
+                    />
+                  </div>
                 </div>
 
                 <Select
                   name="billingCycle"
                   value={formData.billingCycle}
                   onChange={handleChange}
-                  label="결제 주기"
+                  label="결제 주기 *"
                   options={[
                     { value: 'MONTHLY', label: '월간' },
                     { value: 'YEARLY', label: '연간' },
@@ -423,7 +532,7 @@ const SubscriptionPage = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    결제일
+                    결제일 *
                   </label>
                   <input
                     type="number"
@@ -436,6 +545,30 @@ const SubscriptionPage = () => {
                     max="31"
                     required
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    시작월 *
+                  </label>
+                  <div className="flex gap-2">
+                    <Select
+                      name="startYear"
+                      value={startYear}
+                      onChange={handleStartYearChange}
+                      options={yearOptions}
+                      placeholder="년"
+                      className="flex-1"
+                    />
+                    <Select
+                      name="startMonthNum"
+                      value={startMonthNum}
+                      onChange={handleStartMonthChange}
+                      options={monthOptions}
+                      placeholder="월"
+                      className="flex-1"
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -503,31 +636,43 @@ const SubscriptionPage = () => {
                     value={formData.planName}
                     onChange={handleChange}
                     className="input-field"
-                    placeholder="요금제명을 입력하세요"
-                    required
+                    placeholder="요금제명을 입력하세요 (선택사항)"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    월 요금
+                    월 요금 ({formData.currency === 'USD' ? '달러' : '원'}) *
                   </label>
-                  <input
-                    type="number"
-                    name="monthlyPrice"
-                    value={formData.monthlyPrice}
-                    onChange={handleChange}
-                    className="input-field"
-                    placeholder="월 요금을 입력하세요"
-                    required
-                  />
+                  <div className="flex gap-2">
+                    <Select
+                      name="currency"
+                      value={formData.currency}
+                      onChange={handleChange}
+                      options={[
+                        { value: 'KRW', label: '원' },
+                        { value: 'USD', label: '달러' },
+                      ]}
+                      className="w-24 shrink-0"
+                    />
+                    <input
+                      type="number"
+                      name="monthlyPrice"
+                      value={formData.monthlyPrice}
+                      onChange={handleChange}
+                      className="input-field flex-1"
+                      placeholder={formData.currency === 'USD' ? '달러 금액 입력' : '원 금액 입력'}
+                      min="1"
+                      required
+                    />
+                  </div>
                 </div>
 
                 <Select
                   name="billingCycle"
                   value={formData.billingCycle}
                   onChange={handleChange}
-                  label="결제 주기"
+                  label="결제 주기 *"
                   options={[
                     { value: 'MONTHLY', label: '월간' },
                     { value: 'YEARLY', label: '연간' },
@@ -536,7 +681,7 @@ const SubscriptionPage = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    결제일
+                    결제일 *
                   </label>
                   <input
                     type="number"
@@ -549,6 +694,30 @@ const SubscriptionPage = () => {
                     max="31"
                     required
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    시작월 *
+                  </label>
+                  <div className="flex gap-2">
+                    <Select
+                      name="startYear"
+                      value={startYear}
+                      onChange={handleStartYearChange}
+                      options={yearOptions}
+                      placeholder="년"
+                      className="flex-1"
+                    />
+                    <Select
+                      name="startMonthNum"
+                      value={startMonthNum}
+                      onChange={handleStartMonthChange}
+                      options={monthOptions}
+                      placeholder="월"
+                      className="flex-1"
+                    />
+                  </div>
                 </div>
 
                 <div>

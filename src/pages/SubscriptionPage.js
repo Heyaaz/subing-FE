@@ -203,13 +203,19 @@ const SubscriptionPage = () => {
     }
     try {
       setError(null);
+      const serviceId = formData.serviceId || editingSubscription.serviceId || editingSubscription.service?.id;
       const payload = {
         ...formData,
+        serviceId: serviceId ? Number(serviceId) : undefined,
         monthlyPrice: parseInt(formData.monthlyPrice, 10),
         currency: formData.currency || 'KRW',
         billingDate: parseInt(formData.billingDate, 10),
         startedAt: formData.startMonth
       };
+      if (payload.serviceId == null) {
+        setError('서비스 정보를 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해주세요.');
+        return;
+      }
       await subscriptionService.updateSubscription(editingSubscription.id, payload);
       setShowEditForm(false);
       setEditingSubscription(null);

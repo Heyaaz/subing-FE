@@ -24,7 +24,7 @@ const Header = () => {
     { path: '/dashboard', label: '대시보드' },
     { path: '/subscriptions', label: '구독 관리' },
     { path: '/statistics', label: '통계' },
-    { path: '/comparison', label: '비교' },
+    // { path: '/comparison', label: '비교' }, // 숨김
     { path: '/recommendation/quiz', label: '추천' },
     { path: '/budget', label: '예산' },
     { path: '/optimization', label: '최적화' },

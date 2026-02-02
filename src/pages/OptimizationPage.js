@@ -1,35 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { optimizationService } from '../services/optimizationService';
 import { useAuth } from '../context/AuthContext';
-import { Card, Badge, Alert } from '../components/common';
+import { Card, Badge, Alert, Button } from '../components/common';
 import Loading from '../components/Loading';
 // import TierLimitModal from '../components/TierLimitModal'; // 임시 숨김
 
 const OptimizationPage = () => {
   const { user } = useAuth();
   const [suggestions, setSuggestions] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
   // const [showTierModal, setShowTierModal] = useState(false); // 임시 숨김
-
-  useEffect(() => {
-    if (user?.id) {
-      fetchSuggestions();
-    }
-  }, [user?.id]);
 
   const fetchSuggestions = async () => {
     if (!user?.id) return;
+    setErrorMessage(null);
+    setLoading(true);
     try {
-      setLoading(true);
       const response = await optimizationService.getOptimizationSuggestions(user.id);
       setSuggestions(response.data);
     } catch (error) {
       console.error('Failed to fetch optimization suggestions:', error);
-      // 티어 제한 에러인 경우 모달 표시 (임시 비활성화)
-      // const errorMessage = error.data?.message || error?.message || error?.error || '';
-      // if (errorMessage.includes('최적화 체크 사용 횟수') || errorMessage.includes('업그레이드')) {
-      //   setShowTierModal(true);
-      // }
+      const message = error?.message || error?.data?.message || error?.data?.data?.message;
+      setErrorMessage(message || '최적화 제안을 불러오지 못했어요. 다시 시도해주세요.');
+      setSuggestions(null);
     } finally {
       setLoading(false);
     }
@@ -50,9 +44,18 @@ const OptimizationPage = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
-          <Alert variant="error">
-            최적화 제안을 불러오지 못했어요. 다시 시도해주세요.
-          </Alert>
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">최적화 제안</h1>
+            <p className="text-gray-600 mb-6">구독을 분석해서 비용을 절감할 수 있는 방법을 알려드려요</p>
+            <Button onClick={fetchSuggestions} disabled={loading}>
+              최적화 분석하기
+            </Button>
+          </div>
+          {errorMessage && (
+            <Alert variant="error">
+              {errorMessage}
+            </Alert>
+          )}
         </div>
       </div>
     );

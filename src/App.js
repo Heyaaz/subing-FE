@@ -16,7 +16,7 @@ import NotificationPage from './pages/NotificationPage';
 import NotificationSettingsPage from './pages/NotificationSettingsPage';
 import BudgetPage from './pages/BudgetPage';
 import OptimizationPage from './pages/OptimizationPage';
-import TierPage from './pages/TierPage';
+// import TierPage from './pages/TierPage'; // 임시 숨김
 import ServiceReviewsPage from './pages/ServiceReviewsPage';
 import PreferenceTestPage from './pages/preferences/PreferenceTestPage';
 import PreferenceResultPage from './pages/preferences/PreferenceResultPage';
@@ -222,7 +222,8 @@ function App() {
                 </PrivateRoute>
               }
             />
-            <Route
+            {/* 티어 페이지 임시 숨김 */}
+            {/* <Route
               path="/tier"
               element={
                 <PrivateRoute>
@@ -232,7 +233,7 @@ function App() {
                   </div>
                 </PrivateRoute>
               }
-            />
+            /> */}
             <Route
               path="/services/:serviceId/reviews"
               element={

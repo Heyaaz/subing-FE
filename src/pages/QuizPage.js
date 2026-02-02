@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import preferenceService from '../services/preferenceService';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/common';
-import TierLimitModal from '../components/TierLimitModal';
+// import TierLimitModal from '../components/TierLimitModal'; // 임시 숨김
 
 const QuizPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [step, setStep] = useState(1);
-  const [showTierModal, setShowTierModal] = useState(false);
+  // const [showTierModal, setShowTierModal] = useState(false); // 임시 숨김
   const [hasPreference, setHasPreference] = useState(false);
 
   const [quizData, setQuizData] = useState({
@@ -267,12 +267,12 @@ const QuizPage = () => {
         </div>
       </div>
 
-      {/* 티어 제한 모달 */}
-      <TierLimitModal
+      {/* 티어 제한 모달 (임시 숨김) */}
+      {/* <TierLimitModal
         isOpen={showTierModal}
         onClose={() => setShowTierModal(false)}
         limitType="gpt"
-      />
+      /> */}
     </div>
   );
 };

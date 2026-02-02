@@ -28,7 +28,7 @@ const Header = () => {
     { path: '/recommendation/quiz', label: '추천' },
     { path: '/budget', label: '예산' },
     { path: '/optimization', label: '최적화' },
-    { path: '/tier', label: '티어' },
+    // { path: '/tier', label: '티어' }, // 임시 숨김
   ];
 
   // ADMIN 사용자에게만 관리자 메뉴 추가

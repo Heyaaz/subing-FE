@@ -40,14 +40,15 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await authService.login(credentials);
       const userData = response.data; // 백엔드에서 직접 사용자 정보 반환
-      
+
       setUser(userData);
       return response;
     } catch (error) {
-      setError(error.message || '로그인에 실패했습니다.');
+      const errorMessage = error.data?.message || error.message || '로그인에 실패했습니다.';
+      setError(errorMessage);
       throw error;
     } finally {
       setLoading(false);
@@ -59,11 +60,12 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await authService.signup(userData);
       return response;
     } catch (error) {
-      setError(error.message || '회원가입에 실패했습니다.');
+      const errorMessage = error.data?.message || error.message || '회원가입에 실패했습니다.';
+      setError(errorMessage);
       throw error;
     } finally {
       setLoading(false);

@@ -26,7 +26,7 @@ const OptimizationPage = () => {
     } catch (error) {
       console.error('Failed to fetch optimization suggestions:', error);
       // 티어 제한 에러인 경우 모달 표시
-      const errorMessage = error?.message || error?.error || '';
+      const errorMessage = error.data?.message || error?.message || error?.error || '';
       if (errorMessage.includes('최적화 체크 사용 횟수') || errorMessage.includes('업그레이드')) {
         setShowTierModal(true);
       }

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { recommendationService } from '../services/recommendationService';
 import { useAuth } from '../context/AuthContext';
-import { Button, Card, Badge, Alert } from '../components/common';
+import { Button, Card, Alert } from '../components/common';
 
 const RecommendationResultPage = () => {
   const location = useLocation();

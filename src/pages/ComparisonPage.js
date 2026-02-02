@@ -65,19 +65,6 @@ const ComparisonPage = () => {
     setError(null);
   };
 
-  const getCategoryColor = (category) => {
-    const colors = {
-      OTT: 'bg-purple-100 text-purple-800',
-      AI: 'bg-blue-100 text-blue-800',
-      MUSIC: 'bg-pink-100 text-pink-800',
-      CLOUD: 'bg-cyan-100 text-cyan-800',
-      DESIGN: 'bg-orange-100 text-orange-800',
-      DELIVERY: 'bg-green-100 text-green-800',
-      ETC: 'bg-gray-100 text-gray-800'
-    };
-    return colors[category] || colors.ETC;
-  };
-
   if (loading) {
     return <Loading text="서비스 목록을 불러오고 있어요..." />;
   }

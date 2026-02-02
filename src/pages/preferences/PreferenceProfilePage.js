@@ -3,33 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import preferenceService from '../../services/preferenceService';
 import { authService } from '../../services/authService';
 
-// Mock 프로필 데이터 (API 실패 시 사용하지 않음)
-const MOCK_PROFILE = {
-  profileType: {
-    emoji: '🎬',
-    name: '구독 덕후형',
-    englishName: 'Content Collector',
-    description: '구독 많을수록 행복해!',
-    quote: '내 구독 리스트는 내 정체성이야!'
-  },
-  scores: {
-    content: 85,
-    price: 30,
-    health: 40,
-    selfDev: 60,
-    digital: 80
-  },
-  budget: '월 5만원 이상 (프리미엄형)',
-  interestedCategories: ['스트리밍', '음악', '독서', '클라우드'],
-  recommendations: [
-    { name: '넷플릭스 프리미엄', price: '월 17,000원', emoji: '📺' },
-    { name: '유튜브 프리미엄', price: '월 14,900원', emoji: '▶️' },
-    { name: '밀리의 서재', price: '월 9,900원', emoji: '📚' },
-    { name: '디즈니플러스', price: '월 13,900원', emoji: '🏰' }
-  ],
-  lastTestDate: '2025-11-12'
-};
-
 function PreferenceProfilePage() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);

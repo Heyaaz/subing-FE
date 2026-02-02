@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { notificationSettingService } from '../services/notificationSettingService';
-import { Card, EmptyState } from '../components/common';
+import { EmptyState } from '../components/common';
 import Loading from '../components/Loading';
 
 const NotificationSettingsPage = () => {

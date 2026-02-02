@@ -158,7 +158,6 @@ function PreferenceTestPage() {
   const [selectedOption, setSelectedOption] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   // 질문 목록 로드
   useEffect(() => {

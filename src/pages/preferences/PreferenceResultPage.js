@@ -3,55 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import preferenceService from '../../services/preferenceService';
 import { authService } from '../../services/authService';
 
-// Mock 프로필 타입 (API 실패 시 사용)
-const PROFILE_TYPES = {
-  CONTENT_COLLECTOR: {
-    emoji: '🎬',
-    name: '구독 덕후형',
-    englishName: 'Content Collector',
-    description: '구독 많을수록 행복해!',
-    fullDescription: '영상/음악/독서 다 좋아하는 콘텐츠 올인형',
-    quote: '내 구독 리스트는 내 정체성이야!',
-    budget: '월 5만원 이상',
-    recommendations: [
-      { name: '넷플릭스 프리미엄', price: '월 17,000원', emoji: '📺' },
-      { name: '유튜브 프리미엄', price: '월 14,900원', emoji: '▶️' },
-      { name: '밀리의 서재', price: '월 9,900원', emoji: '📚' },
-      { name: '디즈니플러스 프리미엄', price: '월 13,900원', emoji: '🏰' }
-    ]
-  },
-  SMART_SAVER: {
-    emoji: '💰',
-    name: '알뜰 구독러형',
-    englishName: 'Smart Saver',
-    description: '가성비 없으면 안 써!',
-    fullDescription: '저렴하면서 실용적인 서비스만 쏙쏙',
-    quote: '무료 체험 끝나면 바로 해지하는 게 나야!',
-    budget: '월 1~3만원',
-    recommendations: [
-      { name: '쿠팡 로켓와우', price: '월 7,890원', emoji: '🚀' },
-      { name: '티빙 베이직', price: '월 5,500원', emoji: '📺' },
-      { name: '네이버 플러스 멤버십', price: '월 4,900원', emoji: '🟢' },
-      { name: '왓챠', price: '월 7,900원', emoji: '🎬' }
-    ]
-  },
-  PREMIUM_ENJOYER: {
-    emoji: '💎',
-    name: '프리미엄 러버형',
-    englishName: 'Premium Enjoyer',
-    description: '비싸도 좋으면 OK!',
-    fullDescription: '브랜드와 품질 중시, 돈보다 가치',
-    quote: '최고만 쓰는 게 내 스타일!',
-    budget: '월 10만원 이상도 가능',
-    recommendations: [
-      { name: '애플원 프리미어', price: '월 33,000원', emoji: '🍎' },
-      { name: 'ChatGPT Pro', price: '월 $200', emoji: '🤖' },
-      { name: 'Adobe Creative Cloud', price: '월 65,000원', emoji: '🎨' },
-      { name: 'Claude Max', price: '월 $200', emoji: '🧠' }
-    ]
-  }
-};
-
 function PreferenceResultPage() {
   const navigate = useNavigate();
   const location = useLocation();

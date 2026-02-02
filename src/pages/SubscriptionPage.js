@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { subscriptionService } from '../services/subscriptionService';
 import { serviceService } from '../services/serviceService';
-import { Button, Card, Badge, Alert, EmptyState, Input, Select } from '../components/common';
+import { Button, Card, Alert, EmptyState, Select } from '../components/common';
 import Loading from '../components/Loading';
 
 const SubscriptionPage = () => {

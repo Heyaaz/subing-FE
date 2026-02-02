@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button, Input, Alert } from '../components/common';
-import Loading from '../components/Loading';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({

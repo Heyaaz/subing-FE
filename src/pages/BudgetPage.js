@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { budgetService } from '../services/budgetService';
 import { useAuth } from '../context/AuthContext';
-import { Button, Card, Alert, EmptyState, Input } from '../components/common';
+import { Button, Card, EmptyState } from '../components/common';
 import Loading from '../components/Loading';
 
 const BudgetPage = () => {
@@ -21,6 +21,7 @@ const BudgetPage = () => {
       fetchBudgets();
       fetchCurrentBudget();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   const fetchBudgets = async () => {

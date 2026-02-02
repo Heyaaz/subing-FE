@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllServices, createService, updateService, deleteService } from '../../services/adminService';
-import { Button, Badge, Select } from '../../components/common';
+import { Button, Select } from '../../components/common';
 import Loading from '../../components/Loading';
 
 const AdminServicesPage = () => {

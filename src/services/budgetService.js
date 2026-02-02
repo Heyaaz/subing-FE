@@ -9,7 +9,7 @@ export const budgetService = {
         month,
         monthlyLimit
       });
-      return response.data;
+      return response.data.data;
     } catch (error) {
       throw error.response?.data || error;
     }
@@ -19,7 +19,7 @@ export const budgetService = {
   async getAllBudgets(userId) {
     try {
       const response = await api.get(`/budgets?userId=${userId}`);
-      return response.data;
+      return response.data.data;
     } catch (error) {
       throw error.response?.data || error;
     }
@@ -29,7 +29,7 @@ export const budgetService = {
   async getCurrentMonthBudget(userId) {
     try {
       const response = await api.get(`/budgets/current?userId=${userId}`);
-      return response.data;
+      return response.data.data;
     } catch (error) {
       throw error.response?.data || error;
     }
@@ -39,7 +39,7 @@ export const budgetService = {
   async getBudget(userId, year, month) {
     try {
       const response = await api.get(`/budgets/${year}/${month}?userId=${userId}`);
-      return response.data;
+      return response.data.data;
     } catch (error) {
       throw error.response?.data || error;
     }
@@ -49,7 +49,7 @@ export const budgetService = {
   async deleteBudget(budgetId, userId) {
     try {
       const response = await api.delete(`/budgets/${budgetId}?userId=${userId}`);
-      return response.data;
+      return response.data.data;
     } catch (error) {
       throw error.response?.data || error;
     }

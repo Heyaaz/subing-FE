@@ -18,7 +18,7 @@ export const subscriptionService = {
       }
 
       const response = await api.get(`/subscriptions?${params.toString()}`);
-      return response.data;
+      return response.data.data;
     } catch (error) {
       throw error.response?.data || error;
     }

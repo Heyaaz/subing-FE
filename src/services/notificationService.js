@@ -15,7 +15,7 @@ export const notificationService = {
   async getUnreadNotifications(userId) {
     try {
       const response = await api.get(`/notifications/unread?userId=${userId}`);
-      return response.data;
+      return response.data.data;
     } catch (error) {
       throw error.response?.data || error;
     }

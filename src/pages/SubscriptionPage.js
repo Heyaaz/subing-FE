@@ -54,7 +54,7 @@ const SubscriptionPage = () => {
       if (filters.sort) filterParams.sort = filters.sort;
 
       const response = await subscriptionService.getSubscriptions(user.id, filterParams);
-      setSubscriptions(response.data || []);
+      setSubscriptions(response || []);
     } catch (error) {
       setError('구독 목록을 불러오지 못했어요. 다시 시도해주세요.');
       console.error('Load subscriptions error:', error);

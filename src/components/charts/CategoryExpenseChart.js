@@ -33,7 +33,7 @@ const CategoryExpenseChart = ({ data }) => {
     datasets: [
       {
         label: '카테고리별 지출',
-        data: data.map(item => item.totalAmount),
+        data: data.map(item => item.amount),
         backgroundColor: colors.slice(0, data.length),
         borderColor: colors.slice(0, data.length).map(color => color.replace('0.8', '1')),
         borderWidth: 2,

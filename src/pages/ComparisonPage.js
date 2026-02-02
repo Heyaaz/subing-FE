@@ -65,6 +65,19 @@ const ComparisonPage = () => {
     setError(null);
   };
 
+  /** API: website, plans(monthlyPrice) → 가격 범위 문자열 */
+  const getPriceRange = (service) => {
+    const plans = service?.plans;
+    if (!plans?.length) return null;
+    const prices = plans.map((p) => p.monthlyPrice).filter((p) => p != null);
+    if (prices.length === 0) return null;
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    return min === max
+      ? `${min.toLocaleString()}원`
+      : `${min.toLocaleString()} ~ ${max.toLocaleString()}원`;
+  };
+
   if (loading) {
     return <Loading text="서비스 목록을 불러오고 있어요..." />;
   }
@@ -173,24 +186,24 @@ const ComparisonPage = () => {
                   ))}
                 </tr>
 
-                {/* 가격 범위 */}
+                {/* 가격 범위 (plans 기준 min/max) */}
                 <tr className="border-b border-gray-100">
                   <td className="px-4 py-3 text-sm font-medium text-gray-700">가격 범위</td>
                   {comparisonResult.services?.map((service) => (
                     <td key={service.id} className="px-4 py-3 text-center text-sm text-gray-600">
-                      {service.priceRange || '-'}
+                      {getPriceRange(service) ?? '-'}
                     </td>
                   ))}
                 </tr>
 
-                {/* 웹사이트 */}
+                {/* 웹사이트 (API: website) */}
                 <tr className="border-b border-gray-100">
                   <td className="px-4 py-3 text-sm font-medium text-gray-700">웹사이트</td>
                   {comparisonResult.services?.map((service) => (
                     <td key={service.id} className="px-4 py-3 text-center text-sm">
-                      {service.websiteUrl ? (
+                      {service.website ? (
                         <a
-                          href={service.websiteUrl}
+                          href={service.website}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-primary-600 hover:text-primary-800 underline"
@@ -207,11 +220,17 @@ const ComparisonPage = () => {
             </table>
           </div>
 
-          {/* 요약 */}
+          {/* 요약 (API: summary 객체 minPrice, maxPrice, avgPrice, mostPopularService, bestValueService) */}
           {comparisonResult.summary && (
             <div className="mt-6 p-4 bg-gray-50 rounded-lg">
               <h3 className="text-sm font-semibold text-gray-700 mb-2">비교 요약</h3>
-              <p className="text-sm text-gray-600">{comparisonResult.summary}</p>
+              <div className="text-sm text-gray-700 space-y-1">
+                <div>최저가: {comparisonResult.summary.minPrice != null ? `${comparisonResult.summary.minPrice.toLocaleString()}원` : '-'}</div>
+                <div>최고가: {comparisonResult.summary.maxPrice != null ? `${comparisonResult.summary.maxPrice.toLocaleString()}원` : '-'}</div>
+                <div>평균: {comparisonResult.summary.avgPrice != null ? `${comparisonResult.summary.avgPrice.toLocaleString()}원` : '-'}</div>
+                <div>인기: {comparisonResult.summary.mostPopularService ?? '-'}</div>
+                <div>가성비: {comparisonResult.summary.bestValueService ?? '-'}</div>
+              </div>
             </div>
           )}
         </Card>

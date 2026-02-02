@@ -47,15 +47,15 @@ const Dashboard = () => {
         statisticsService.getMonthlyExpense(user.id, year, month),
         subscriptionService.getSubscriptions(user.id, { isActive: true, sort: 'nextPaymentDate' }),
         budgetService.getCurrentMonthBudget(user.id).catch(() => null),
-        notificationService.getUnreadNotifications(user.id).catch(() => ({ data: [] }))
+        notificationService.getUnreadNotifications(user.id).catch(() => [])
       ]);
 
       // 7일 이내 결제 예정 구독
       const sevenDaysLater = new Date();
       sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
-      const upcomingPayments = allSubscriptions.data?.filter(sub => {
-        if (!sub.nextPaymentDate) return false;
-        const paymentDate = new Date(sub.nextPaymentDate);
+      const upcomingPayments = allSubscriptions?.filter(sub => {
+        if (!sub.nextBillingDate) return false;
+        const paymentDate = new Date(sub.nextBillingDate);
         return paymentDate <= sevenDaysLater && paymentDate >= now;
       }) || [];
 
@@ -70,7 +70,7 @@ const Dashboard = () => {
           trendMonths.push({
             year: trendYear,
             month: trendMonth,
-            amount: data.data?.totalAmount || 0
+            amount: data.totalAmount || 0
           });
         } catch (error) {
           trendMonths.push({ year: trendYear, month: trendMonth, amount: 0 });
@@ -78,13 +78,13 @@ const Dashboard = () => {
       }
 
       setDashboardData({
-        monthlyExpense: monthlyExpense.data,
-        activeSubscriptions: allSubscriptions.data || [],
-        budget: budget?.data,
+        monthlyExpense: monthlyExpense,
+        activeSubscriptions: allSubscriptions || [],
+        budget: budget,
         upcomingPayments: upcomingPayments.slice(0, 5),
-        recentNotifications: (unreadNotifications.data || []).slice(0, 5),
+        recentNotifications: (unreadNotifications || []).slice(0, 5),
         monthlyTrend: trendMonths,
-        categoryExpenses: monthlyExpense.data?.categoryExpenses || []
+        categoryExpenses: monthlyExpense?.categoryExpenses || []
       });
     } catch (error) {
       console.error('대시보드 데이터 조회 실패:', error);
@@ -221,15 +221,15 @@ const Dashboard = () => {
                     <div className="flex-1">
                       <div className="font-semibold text-gray-900">{subscription.serviceName}</div>
                       <div className="text-sm text-gray-500">
-                        {subscription.planName} · {formatCurrency(subscription.price)}원
+                        {subscription.planName} · {formatCurrency(subscription.monthlyPrice)}원
                       </div>
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-medium text-primary-600">
-                        {formatDate(subscription.nextPaymentDate)}
+                        {formatDate(subscription.nextBillingDate)}
                       </div>
                       <div className="text-xs text-gray-500">
-                        D-{getDaysUntil(subscription.nextPaymentDate)}
+                        D-{getDaysUntil(subscription.nextBillingDate)}
                       </div>
                     </div>
                   </div>
@@ -320,20 +320,22 @@ const Dashboard = () => {
             <h2 className="text-xl font-bold text-gray-900 mb-4">📈 월별 지출 트렌드</h2>
             {dashboardData.monthlyTrend.length > 0 ? (
               <div className="space-y-4">
-                <div className="flex items-end justify-between gap-2 h-48">
+                <div className="flex justify-between gap-2 h-48">
                   {dashboardData.monthlyTrend.map((item, index) => {
                     const maxAmount = Math.max(...dashboardData.monthlyTrend.map(m => m.amount), 1);
                     const heightPercent = (item.amount / maxAmount) * 100;
                     return (
-                      <div key={index} className="flex-1 flex flex-col items-center">
-                        <div className="text-xs font-semibold text-gray-900 mb-1">
+                      <div key={index} className="flex-1 flex flex-col items-center min-w-0">
+                        <div className="text-xs font-semibold text-gray-900 mb-1 shrink-0">
                           {formatCurrency(item.amount)}
                         </div>
-                        <div
-                          className="w-full bg-primary-500 rounded-t transition-all hover:bg-primary-600"
-                          style={{ height: `${Math.max(heightPercent, 5)}%` }}
-                        />
-                        <div className="text-xs text-gray-600 mt-2">
+                        <div className="flex-1 min-h-0 w-full flex flex-col justify-end shrink-0">
+                          <div
+                            className="w-full bg-primary-500 rounded-t transition-all hover:bg-primary-600"
+                            style={{ height: `${Math.max(heightPercent, 5)}%` }}
+                          />
+                        </div>
+                        <div className="text-xs text-gray-600 mt-2 shrink-0">
                           {item.month}월
                         </div>
                       </div>
@@ -362,7 +364,7 @@ const Dashboard = () => {
                         {category.category}
                       </Badge>
                       <span className="text-sm text-gray-600">
-                        {category.count}개
+                        {category.subscriptionCount}개
                       </span>
                     </div>
                     <div className="text-right">

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { optimizationService } from '../services/optimizationService';
 import { useAuth } from '../context/AuthContext';
 import { Card, Badge, Alert, Button } from '../components/common';
@@ -7,6 +8,7 @@ import Loading from '../components/Loading';
 
 const OptimizationPage = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [suggestions, setSuggestions] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -126,6 +128,17 @@ const OptimizationPage = () => {
                       ))}
                     </div>
                   </div>
+
+                  {/* 액션 버튼 그룹 */}
+                  <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => navigate('/subscriptions')}
+                    >
+                      구독 관리에서 확인
+                    </Button>
+                  </div>
                 </Card>
               ))}
             </div>
@@ -195,6 +208,29 @@ const OptimizationPage = () => {
                       <p className="text-sm text-gray-600">{alternative.alternativePlan.description}</p>
                     </div>
                   )}
+
+                  {/* 액션 버튼 그룹 */}
+                  <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
+                    {alternative.alternativeServiceUrl && (
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        as="a"
+                        href={alternative.alternativeServiceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        대안 서비스 확인
+                      </Button>
+                    )}
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => navigate(`/subscriptions`)}
+                    >
+                      현재 구독 관리
+                    </Button>
+                  </div>
                 </Card>
               ))}
             </div>

@@ -5,6 +5,7 @@ import { statisticsService } from '../services/statisticsService';
 import { subscriptionService } from '../services/subscriptionService';
 import { budgetService } from '../services/budgetService';
 import { notificationService } from '../services/notificationService';
+import { optimizationService } from '../services/optimizationService';
 import { Button, Card, Badge, EmptyState } from '../components/common';
 import Loading from '../components/Loading';
 
@@ -19,7 +20,8 @@ const Dashboard = () => {
     upcomingPayments: [],
     recentNotifications: [],
     monthlyTrend: [],
-    categoryExpenses: []
+    categoryExpenses: [],
+    optimizationData: null
   });
 
   useEffect(() => {
@@ -42,12 +44,14 @@ const Dashboard = () => {
         monthlyExpense,
         allSubscriptions,
         budget,
-        unreadNotifications
+        unreadNotifications,
+        optimizationData
       ] = await Promise.all([
         statisticsService.getMonthlyExpense(user.id, year, month),
         subscriptionService.getSubscriptions(user.id, { isActive: true, sort: 'nextPaymentDate' }),
         budgetService.getCurrentMonthBudget(user.id).catch(() => null),
-        notificationService.getUnreadNotifications(user.id).catch(() => [])
+        notificationService.getUnreadNotifications(user.id).catch(() => []),
+        optimizationService.getOptimizationSuggestions(user.id).catch(() => null)
       ]);
 
       // 7일 이내 결제 예정 구독
@@ -84,7 +88,8 @@ const Dashboard = () => {
         upcomingPayments: upcomingPayments.slice(0, 5),
         recentNotifications: (unreadNotifications || []).slice(0, 5),
         monthlyTrend: trendMonths,
-        categoryExpenses: monthlyExpense?.categoryExpenses || []
+        categoryExpenses: monthlyExpense?.categoryExpenses || [],
+        optimizationData: optimizationData
       });
     } catch (error) {
       console.error('대시보드 데이터 조회 실패:', error);
@@ -195,6 +200,66 @@ const Dashboard = () => {
               </div>
             )}
           </Card>
+        </div>
+
+        {/* 행동 유도형 요약 카드 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {/* 결제 예정 요약 */}
+          <Card
+            className="cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => navigate('/subscriptions')}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500 mb-1">7일 내 결제 예정</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {dashboardData.upcomingPayments.length}건
+                </p>
+                <p className="text-sm text-gray-600 mt-1">
+                  {formatCurrency(dashboardData.upcomingPayments.reduce((sum, p) => sum + (p.price || 0), 0))}
+                </p>
+              </div>
+              <div className="text-4xl">📅</div>
+            </div>
+          </Card>
+
+          {/* 중복 의심 */}
+          {dashboardData.optimizationData?.duplicateServices?.length > 0 && (
+            <Card
+              className="cursor-pointer hover:shadow-md transition-shadow border-warning-200"
+              onClick={() => navigate('/optimization')}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-warning-600 mb-1">중복 의심</p>
+                  <p className="text-3xl font-bold text-warning-700">
+                    {dashboardData.optimizationData.duplicateServices.length}개
+                  </p>
+                  <p className="text-sm text-warning-600 mt-1">카테고리 확인 필요</p>
+                </div>
+                <div className="text-4xl">⚠️</div>
+              </div>
+            </Card>
+          )}
+
+          {/* 절약 가능 금액 */}
+          {dashboardData.optimizationData?.totalPotentialSavings > 0 && (
+            <Card
+              className="cursor-pointer hover:shadow-md transition-shadow border-success-200"
+              onClick={() => navigate('/optimization')}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-success-600 mb-1">절약 가능</p>
+                  <p className="text-3xl font-bold text-success-700">
+                    {formatCurrency(dashboardData.optimizationData.totalPotentialSavings)}
+                  </p>
+                  <p className="text-sm text-success-600 mt-1">월 기준</p>
+                </div>
+                <div className="text-4xl">💰</div>
+              </div>
+            </Card>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

@@ -22,15 +22,14 @@ const StreamingRecommendationPage = () => {
   const [loadingServices, setLoadingServices] = useState(false);
 
   // 피드백 상태 관리
-  const [feedbackStatus, setFeedbackStatus] = useState({}); // { [recommendationId]: 'like' | 'dislike' }
+  // { [index]: { type: 'like' | 'dislike', loading: boolean, submitted: boolean } }
+  const [feedbackStatus, setFeedbackStatus] = useState({});
   const [toastMessage, setToastMessage] = useState('');
   const [showToast, setShowToast] = useState(false);
 
-  // 모달 및 카드 상태 관리
+  // 모달 상태 관리
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
-  const [collapsedCards, setCollapsedCards] = useState(new Set());
-  const [hiddenCards, setHiddenCards] = useState(new Set());
   const [services, setServices] = useState([]);
   const [modalError, setModalError] = useState(null);
 
@@ -203,16 +202,45 @@ const StreamingRecommendationPage = () => {
 
   // 피드백 제출 핸들러
   const handleFeedback = async (recommendationIndex, feedbackType) => {
-    // 이미 피드백을 남긴 경우 중복 방지
-    if (feedbackStatus[recommendationIndex]) {
+    // 이미 피드백을 남겼거나 로딩 중인 경우 중복 방지
+    if (feedbackStatus[recommendationIndex]?.submitted || feedbackStatus[recommendationIndex]?.loading) {
       return;
     }
 
-    try {
-      // 피드백 상태 업데이트
+    // recommendationId가 없으면 피드백 불가
+    const recommendationId = parsedResult?.recommendationId;
+    if (!recommendationId) {
+      console.warn('recommendationId가 없어 피드백을 저장할 수 없습니다.');
+      // UI만 업데이트 (로컬 상태)
       setFeedbackStatus(prev => ({
         ...prev,
-        [recommendationIndex]: feedbackType
+        [recommendationIndex]: { type: feedbackType, loading: false, submitted: true }
+      }));
+      if (feedbackType === 'like') {
+        setToastMessage('좋은 추천이었군요!');
+      } else {
+        setToastMessage('피드백 감사합니다!');
+      }
+      setShowToast(true);
+      return;
+    }
+
+    // 로딩 상태로 설정
+    setFeedbackStatus(prev => ({
+      ...prev,
+      [recommendationIndex]: { type: feedbackType, loading: true, submitted: false }
+    }));
+
+    try {
+      // 실제 API 호출
+      const isHelpful = feedbackType === 'like';
+      const comment = feedbackType === 'like' ? '도움됨' : '별로예요';
+      await recommendationService.submitFeedback(recommendationId, user.id, isHelpful, comment);
+
+      // 성공 시 상태 업데이트
+      setFeedbackStatus(prev => ({
+        ...prev,
+        [recommendationIndex]: { type: feedbackType, loading: false, submitted: true }
       }));
 
       // 토스트 메시지 표시
@@ -222,11 +250,19 @@ const StreamingRecommendationPage = () => {
         setToastMessage('피드백 감사합니다! 다음엔 더 나은 추천을 드릴게요');
       }
       setShowToast(true);
-
-      // TODO: 실제 API 호출 (필요시)
-      // await recommendationService.submitFeedback(userId, recommendationIndex, feedbackType);
     } catch (error) {
       console.error('피드백 제출 실패:', error);
+      // 실패 시에도 UI 상태는 유지 (Silent fail)
+      setFeedbackStatus(prev => ({
+        ...prev,
+        [recommendationIndex]: { type: feedbackType, loading: false, submitted: true }
+      }));
+      if (feedbackType === 'like') {
+        setToastMessage('좋은 추천이었군요!');
+      } else {
+        setToastMessage('피드백 감사합니다!');
+      }
+      setShowToast(true);
     }
   };
 
@@ -246,36 +282,6 @@ const StreamingRecommendationPage = () => {
       setServiceSearchQuery(serviceName);
     }
     setShowAddModal(true);
-  };
-
-  const handleGoToOfficialSite = (serviceName) => {
-    const matchingService = services.find(s =>
-      (s.name || s.serviceName || '').toLowerCase() === serviceName.toLowerCase()
-    );
-
-    if (matchingService && matchingService.officialUrl) {
-      window.open(matchingService.officialUrl, '_blank');
-    } else {
-      // 서비스 정보가 없으면 구글 검색
-      window.open(`https://www.google.com/search?q=${encodeURIComponent(serviceName)}`, '_blank');
-    }
-  };
-
-  const handleSaveLater = (index) => {
-    setCollapsedCards(prev => new Set([...prev, index]));
-  };
-
-  const handleNotInterested = async (index, recommendationId) => {
-    setHiddenCards(prev => new Set([...prev, index]));
-
-    // 피드백 제출 (비동기, 실패해도 카드는 숨김)
-    try {
-      if (recommendationId && user?.id) {
-        await recommendationService.submitFeedback(recommendationId, user.id, false, '관심없음');
-      }
-    } catch (error) {
-      console.error('Feedback submission error:', error);
-    }
   };
 
   // 폼 핸들러들
@@ -456,24 +462,6 @@ const StreamingRecommendationPage = () => {
   // 완료 후 — 추천 카드 표시
   return (
     <div className="container mx-auto px-4 py-8">
-      <style>{`
-        @keyframes fadeOut {
-          from { opacity: 1; transform: scale(1); }
-          to { opacity: 0; transform: scale(0.95); }
-        }
-        @keyframes collapse {
-          from { max-height: 1000px; opacity: 1; }
-          to { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; margin-bottom: 0; }
-        }
-        .fade-out {
-          animation: fadeOut 0.3s ease-out forwards;
-        }
-        .collapse {
-          animation: collapse 0.4s ease-out forwards;
-          overflow: hidden;
-        }
-      `}</style>
-
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">당신을 위한 추천</h1>
         <p className="text-gray-600 mb-8">AI가 분석한 맞춤 구독 서비스예요</p>
@@ -481,17 +469,10 @@ const StreamingRecommendationPage = () => {
         {/* 추천 카드 */}
         <div className="space-y-6 mb-8">
           {parsedResult?.recommendations?.map((rec, index) => {
-            const isHidden = hiddenCards.has(index);
-            const isCollapsed = collapsedCards.has(index);
             const serviceInfo = servicesInfo[rec.serviceId];
 
-            if (isHidden) return null;
-
             return (
-              <Card
-                key={index}
-                className={isCollapsed ? 'collapse' : ''}
-              >
+              <Card key={index}>
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
                     {serviceInfo?.iconUrl && (
@@ -544,158 +525,138 @@ const StreamingRecommendationPage = () => {
                   </span>
                 </div>
 
-                {!isCollapsed && (
-                  <>
-                    {/* 추천 이유 */}
-                    <div className="bg-primary-50 border-l-4 border-primary-500 p-4 mb-4 rounded">
-                      <h4 className="font-semibold text-primary-900 mb-2">✨ 추천 이유</h4>
-                      <p className="text-primary-800">{rec.mainReason}</p>
-                    </div>
+                {/* 추천 이유 */}
+                <div className="bg-primary-50 border-l-4 border-primary-500 p-4 mb-4 rounded">
+                  <h4 className="font-semibold text-primary-900 mb-2">✨ 추천 이유</h4>
+                  <p className="text-primary-800">{rec.mainReason}</p>
+                </div>
 
-                    {/* 장점 */}
-                    <div className="mb-4">
-                      <h4 className="font-semibold text-gray-900 mb-2">👍 장점</h4>
-                      <ul className="space-y-2">
-                        {rec.pros?.map((pro, i) => (
-                          <li key={i} className="flex items-start">
-                            <span className="text-success-500 mr-2 mt-0.5">✅</span>
-                            <span className="text-gray-700">{pro}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                {/* 장점 */}
+                <div className="mb-4">
+                  <h4 className="font-semibold text-gray-900 mb-2">👍 장점</h4>
+                  <ul className="space-y-2">
+                    {rec.pros?.map((pro, i) => (
+                      <li key={i} className="flex items-start">
+                        <span className="text-success-500 mr-2 mt-0.5">✅</span>
+                        <span className="text-gray-700">{pro}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
-                    {/* 단점 */}
-                    <div className="mb-4">
-                      <h4 className="font-semibold text-gray-900 mb-2">⚠️ 단점</h4>
-                      <ul className="space-y-2">
-                        {rec.cons?.map((con, i) => (
-                          <li key={i} className="flex items-start">
-                            <span className="text-error-500 mr-2 mt-0.5">❌</span>
-                            <span className="text-gray-700">{con}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                {/* 단점 */}
+                <div className="mb-4">
+                  <h4 className="font-semibold text-gray-900 mb-2">⚠️ 단점</h4>
+                  <ul className="space-y-2">
+                    {rec.cons?.map((con, i) => (
+                      <li key={i} className="flex items-start">
+                        <span className="text-error-500 mr-2 mt-0.5">❌</span>
+                        <span className="text-gray-700">{con}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
-                    {/* 팁 */}
-                    {rec.tip && (
-                      <div className="bg-warning-50 border-l-4 border-warning-500 p-4 mb-4 rounded">
-                        <p className="text-warning-900">
-                          <span className="font-semibold">💡 추천 팁:</span> {rec.tip}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* 피드백 섹션 */}
-                    <div className="border-t border-gray-200 pt-4 mb-4">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-gray-600">이 추천이 도움이 되었나요?</p>
-                        <div className="flex gap-2">
-                          {feedbackStatus[index] ? (
-                            <span className="text-sm text-gray-500 font-medium">
-                              피드백 완료
-                            </span>
-                          ) : (
-                            <>
-                              <button
-                                onClick={() => handleFeedback(index, 'like')}
-                                className="flex items-center gap-1 px-4 py-2 rounded-lg border border-gray-300 hover:border-success-500 hover:bg-success-50 transition-colors"
-                                disabled={!!feedbackStatus[index]}
-                              >
-                                <span className="text-lg">👍</span>
-                                <span className="text-sm text-gray-700">좋아요</span>
-                              </button>
-                              <button
-                                onClick={() => handleFeedback(index, 'dislike')}
-                                className="flex items-center gap-1 px-4 py-2 rounded-lg border border-gray-300 hover:border-error-500 hover:bg-error-50 transition-colors"
-                                disabled={!!feedbackStatus[index]}
-                              >
-                                <span className="text-lg">👎</span>
-                                <span className="text-sm text-gray-700">별로예요</span>
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      {feedbackStatus[index] && (
-                        <div className="mt-2 text-center">
-                          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
-                            feedbackStatus[index] === 'like'
-                              ? 'bg-success-100 text-success-800'
-                              : 'bg-error-100 text-error-800'
-                          }`}>
-                            {feedbackStatus[index] === 'like' ? '👍' : '👎'}
-                            {feedbackStatus[index] === 'like' ? '도움됨' : '별로'}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* CTA 버튼 4개 */}
-                    <div className="space-y-3">
-                      {/* 1차 CTA - 바로 추가 */}
-                      <Button
-                        variant="primary"
-                        onClick={() => handleAddSubscription(rec.serviceName, index)}
-                        className="w-full"
-                      >
-                        이 서비스 구독으로 추가
-                      </Button>
-
-                      {/* 2차 CTA - 3개 버튼 */}
-                      <div className="flex gap-2">
-                        {serviceInfo?.officialUrl ? (
-                          <Button
-                            variant="ghost"
-                            onClick={() => window.open(serviceInfo.officialUrl, '_blank')}
-                            className="flex-1"
-                          >
-                            공식 사이트
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="ghost"
-                            onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(rec.serviceName)}+공식+사이트`, '_blank')}
-                            className="flex-1"
-                          >
-                            공식 사이트
-                          </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          onClick={() => handleSaveLater(index)}
-                          className="flex-1"
-                        >
-                          나중에
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          onClick={() => handleNotInterested(index, rec.id)}
-                          className="flex-1"
-                        >
-                          관심없음
-                        </Button>
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {isCollapsed && (
-                  <div className="text-center py-2">
-                    <Button
-                      variant="ghost"
-                      onClick={() => setCollapsedCards(prev => {
-                        const newSet = new Set(prev);
-                        newSet.delete(index);
-                        return newSet;
-                      })}
-                      className="text-sm"
-                    >
-                      다시 보기
-                    </Button>
+                {/* 팁 */}
+                {rec.tip && (
+                  <div className="bg-warning-50 border-l-4 border-warning-500 p-4 mb-4 rounded">
+                    <p className="text-warning-900">
+                      <span className="font-semibold">💡 추천 팁:</span> {rec.tip}
+                    </p>
                   </div>
                 )}
+
+                {/* 피드백 섹션 */}
+                <div className="border-t border-gray-200 pt-4 mb-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-600">이 추천이 도움이 되었나요?</p>
+                    <div className="flex gap-2">
+                      {feedbackStatus[index]?.submitted ? (
+                        <span className="text-sm text-gray-500 font-medium">
+                          피드백 완료
+                        </span>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => handleFeedback(index, 'like')}
+                            className={`flex items-center gap-1 px-4 py-2 rounded-lg border transition-colors ${
+                              feedbackStatus[index]?.loading
+                                ? 'border-gray-200 bg-gray-50 cursor-not-allowed'
+                                : 'border-gray-300 hover:border-success-500 hover:bg-success-50'
+                            }`}
+                            disabled={feedbackStatus[index]?.loading || feedbackStatus[index]?.submitted}
+                          >
+                            {feedbackStatus[index]?.loading && feedbackStatus[index]?.type === 'like' ? (
+                              <span className="text-lg animate-pulse">⏳</span>
+                            ) : (
+                              <span className="text-lg">👍</span>
+                            )}
+                            <span className="text-sm text-gray-700">좋아요</span>
+                          </button>
+                          <button
+                            onClick={() => handleFeedback(index, 'dislike')}
+                            className={`flex items-center gap-1 px-4 py-2 rounded-lg border transition-colors ${
+                              feedbackStatus[index]?.loading
+                                ? 'border-gray-200 bg-gray-50 cursor-not-allowed'
+                                : 'border-gray-300 hover:border-error-500 hover:bg-error-50'
+                            }`}
+                            disabled={feedbackStatus[index]?.loading || feedbackStatus[index]?.submitted}
+                          >
+                            {feedbackStatus[index]?.loading && feedbackStatus[index]?.type === 'dislike' ? (
+                              <span className="text-lg animate-pulse">⏳</span>
+                            ) : (
+                              <span className="text-lg">👎</span>
+                            )}
+                            <span className="text-sm text-gray-700">별로예요</span>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {feedbackStatus[index]?.submitted && (
+                    <div className="mt-2 text-center">
+                      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
+                        feedbackStatus[index]?.type === 'like'
+                          ? 'bg-success-100 text-success-800'
+                          : 'bg-error-100 text-error-800'
+                      }`}>
+                        {feedbackStatus[index]?.type === 'like' ? '👍' : '👎'}
+                        {feedbackStatus[index]?.type === 'like' ? '도움됨' : '별로'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* CTA 버튼 - 한 줄에 2개 */}
+                <div className="flex gap-3">
+                  {/* 구독 추가 버튼 */}
+                  <Button
+                    variant="primary"
+                    onClick={() => handleAddSubscription(rec.serviceName, index)}
+                    className="flex-1"
+                  >
+                    이 서비스 구독으로 추가
+                  </Button>
+
+                  {/* 구독하러 가기 버튼 (공식 사이트) */}
+                  {serviceInfo?.website ? (
+                    <Button
+                      variant="secondary"
+                      onClick={() => window.open(serviceInfo.website, '_blank')}
+                      className="flex-1"
+                    >
+                      구독하러 가기
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="secondary"
+                      onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(rec.serviceName)}+공식+사이트`, '_blank')}
+                      className="flex-1"
+                    >
+                      구독하러 가기
+                    </Button>
+                  )}
+                </div>
               </Card>
             );
           })}

@@ -55,14 +55,10 @@ export const recommendationService = {
   },
 
   // AI 추천 스트리밍 (실시간 타이핑 효과)
-  async getAIRecommendationsStream(userId, quizData, onChunk, onComplete, onError) {
+  async getAIRecommendationsStream(userId, quizData, onChunk, onComplete, onError, signal) {
     const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api/v1';
     const token = localStorage.getItem('token');
 
-    // EventSource는 GET만 지원하므로, 먼저 POST로 요청을 시작
-    // 또는 다른 방법으로 SSE 연결 시도
-
-    // 방법 1: fetch API with streaming
     try {
       const response = await fetch(
         `${API_BASE_URL}/recommendations/ai/stream?userId=${userId}`,
@@ -72,7 +68,8 @@ export const recommendationService = {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify(quizData)
+          body: JSON.stringify(quizData),
+          signal
         }
       );
 
@@ -83,6 +80,7 @@ export const recommendationService = {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
+      let currentEvent = 'message';
 
       while (true) {
         const { done, value } = await reader.read();
@@ -95,26 +93,26 @@ export const recommendationService = {
         buffer = lines.pop() || '';
 
         for (const line of lines) {
-          if (line.startsWith('data:')) {
+          if (line.startsWith('event:')) {
+            currentEvent = line.slice(6).trim();
+          } else if (line.startsWith('data:')) {
             const data = line.slice(5).trim();
 
-            // 이벤트 타입 파싱
-            const eventMatch = buffer.match(/event:\s*(\w+)/);
-            const eventType = eventMatch ? eventMatch[1] : 'message';
-
-            if (data === 'complete') {
+            if (currentEvent === 'done') {
               if (onComplete) onComplete();
-            } else if (eventType === 'error') {
+            } else if (currentEvent === 'error') {
               if (onError) onError(data);
             } else {
               if (onChunk) onChunk(data);
             }
+            currentEvent = 'message';
           }
         }
       }
 
       return { success: true };
     } catch (error) {
+      if (error.name === 'AbortError') return;
       console.error('Stream error:', error);
       if (onError) onError(error.message);
       throw error;

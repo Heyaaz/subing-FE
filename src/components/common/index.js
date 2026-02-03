@@ -6,3 +6,4 @@ export { default as Badge } from './Badge';
 export { default as Alert } from './Alert';
 export { default as EmptyState } from './EmptyState';
 export { default as Select } from './Select';
+export { default as RecommendationSkeleton } from './RecommendationSkeleton';

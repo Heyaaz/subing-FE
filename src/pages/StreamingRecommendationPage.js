@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { recommendationService } from '../services/recommendationService';
-import { Button } from '../components/common';
+import { Button, Card, RecommendationSkeleton } from '../components/common';
 
 const StreamingRecommendationPage = () => {
   const navigate = useNavigate();
@@ -20,134 +20,208 @@ const StreamingRecommendationPage = () => {
       return;
     }
 
+    const controller = new AbortController();
+
     const startStreaming = async () => {
       try {
         await recommendationService.getAIRecommendationsStream(
           userId,
           quizData,
-          // onChunk: 각 청크를 받을 때마다 호출
           (chunk) => {
             setStreamedText(prev => prev + chunk);
           },
-          // onComplete: 스트리밍 완료 시
           () => {
             setIsStreaming(false);
           },
-          // onError: 에러 발생 시
           (errorMessage) => {
-            setError(errorMessage);
-            setIsStreaming(false);
-          }
+            if (!controller.signal.aborted) {
+              setError(errorMessage);
+              setIsStreaming(false);
+            }
+          },
+          controller.signal
         );
       } catch (err) {
-        console.error('Streaming error:', err);
-        setError(err.message || '추천 생성에 실패했습니다.');
-        setIsStreaming(false);
+        if (!controller.signal.aborted) {
+          console.error('Streaming error:', err);
+          setError(err.message || '추천 생성에 실패했습니다.');
+          setIsStreaming(false);
+        }
       }
     };
 
     startStreaming();
+
+    return () => controller.abort();
   }, [userId, quizData, navigate]);
 
   // 스트리밍 완료 후 JSON 파싱 시도
   useEffect(() => {
     if (!isStreaming && streamedText && !parsedResult) {
       try {
-        const parsed = JSON.parse(streamedText);
+        // 마크다운 코드펜스 제거 (방어적 파싱)
+        const cleanJson = streamedText
+          .replace(/```json\s*/g, '')
+          .replace(/```\s*/g, '')
+          .trim();
+        const parsed = JSON.parse(cleanJson);
         setParsedResult(parsed);
       } catch (e) {
         console.error('JSON 파싱 실패:', e);
-        // JSON 파싱 실패 시에도 텍스트는 보여줌
+        setError('결과를 처리하는 중 문제가 발생했어요');
       }
     }
   }, [isStreaming, streamedText, parsedResult]);
-
-  const handleViewResult = () => {
-    if (parsedResult) {
-      navigate('/recommendation/result', {
-        state: {
-          recommendations: parsedResult
-        }
-      });
-    }
-  };
 
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-3xl mx-auto">
-          <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-            <div className="text-4xl mb-4">😞</div>
-            <h2 className="text-xl font-bold text-red-900 mb-2">추천 생성 실패</h2>
-            <p className="text-red-700 mb-4">{error}</p>
-            <Button variant="primary" onClick={() => navigate('/quiz')}>
-              다시 시도하기
-            </Button>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center">
+            <div className="text-4xl mb-4">🔄</div>
+            <h2 className="text-xl font-bold text-yellow-900 mb-2">
+              결과 처리 중 문제가 발생했어요
+            </h2>
+            <p className="text-yellow-700 mb-6">
+              {error}
+            </p>
+            <div className="flex gap-3 justify-center">
+              <Button variant="primary" onClick={() => navigate('/quiz')}>
+                다시 시도하기
+              </Button>
+              <Button variant="secondary" onClick={() => navigate('/optimization')}>
+                최적화로 이동
+              </Button>
+              <Button variant="ghost" onClick={() => navigate('/subscriptions')}>
+                구독 관리로 이동
+              </Button>
+            </div>
           </div>
         </div>
       </div>
     );
   }
 
+  // 스트리밍 중 — 스켈레톤 로딩
+  if (isStreaming) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              AI가 분석 중이에요…
+            </h1>
+            <p className="text-gray-600">
+              취향/예산/목적을 반영해 추천을 만들고 있어요
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            <RecommendationSkeleton />
+            <RecommendationSkeleton />
+            <RecommendationSkeleton />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 완료 후 — 추천 카드 표시
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="max-w-3xl mx-auto">
-        {/* 헤더 */}
-        <div className="mb-6 text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {isStreaming ? 'AI가 분석 중이에요...' : '분석 완료! ✨'}
-          </h1>
-          <p className="text-gray-600">
-            {isStreaming
-              ? '맞춤형 추천을 생성하고 있어요'
-              : '추천 결과를 확인하세요'}
-          </p>
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">당신을 위한 추천</h1>
+        <p className="text-gray-600 mb-8">AI가 분석한 맞춤 구독 서비스예요</p>
+
+        {/* 추천 카드 */}
+        <div className="space-y-6 mb-8">
+          {parsedResult?.recommendations?.map((rec, index) => (
+            <Card key={index}>
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900">{rec.serviceName}</h3>
+                  <p className="text-gray-600 mt-1">추천 점수: <span className="font-semibold text-primary-600">{rec.score}/100</span></p>
+                </div>
+                <span className="inline-block bg-primary-500 text-white rounded-full w-10 h-10 flex items-center justify-center text-xl font-bold">
+                  {index + 1}
+                </span>
+              </div>
+
+              {/* 추천 이유 */}
+              <div className="bg-primary-50 border-l-4 border-primary-500 p-4 mb-4 rounded">
+                <h4 className="font-semibold text-primary-900 mb-2">✨ 추천 이유</h4>
+                <p className="text-primary-800">{rec.mainReason}</p>
+              </div>
+
+              {/* 장점 */}
+              <div className="mb-4">
+                <h4 className="font-semibold text-gray-900 mb-2">👍 장점</h4>
+                <ul className="space-y-2">
+                  {rec.pros?.map((pro, i) => (
+                    <li key={i} className="flex items-start">
+                      <span className="text-success-500 mr-2 mt-0.5">✅</span>
+                      <span className="text-gray-700">{pro}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* 단점 */}
+              <div className="mb-4">
+                <h4 className="font-semibold text-gray-900 mb-2">⚠️ 단점</h4>
+                <ul className="space-y-2">
+                  {rec.cons?.map((con, i) => (
+                    <li key={i} className="flex items-start">
+                      <span className="text-error-500 mr-2 mt-0.5">❌</span>
+                      <span className="text-gray-700">{con}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* 팁 */}
+              {rec.tip && (
+                <div className="bg-warning-50 border-l-4 border-warning-500 p-4 mb-4 rounded">
+                  <p className="text-warning-900">
+                    <span className="font-semibold">💡 추천 팁:</span> {rec.tip}
+                  </p>
+                </div>
+              )}
+
+              {/* 구독 관리 이동 */}
+              <Button
+                variant="primary"
+                onClick={() => navigate('/subscriptions')}
+                className="w-full"
+              >
+                구독 관리 페이지로 이동하기
+              </Button>
+            </Card>
+          ))}
         </div>
 
-        {/* 로딩 애니메이션 */}
-        {isStreaming && (
-          <div className="flex justify-center mb-6">
-            <div className="flex space-x-2">
-              <div className="w-3 h-3 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-              <div className="w-3 h-3 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-              <div className="w-3 h-3 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-            </div>
-          </div>
+        {/* 전체 요약 */}
+        {parsedResult?.summary && (
+          <Card className="bg-gray-50 mb-8">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">📝 전체 요약</h3>
+            <p className="text-gray-700 leading-relaxed">{parsedResult.summary}</p>
+
+            {parsedResult.alternatives && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <p className="text-gray-600 text-sm">
+                  <span className="font-semibold">💭 대안:</span> {parsedResult.alternatives}
+                </p>
+              </div>
+            )}
+          </Card>
         )}
 
-        {/* 스트리밍 텍스트 표시 */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="prose max-w-none">
-            <pre className="whitespace-pre-wrap font-mono text-sm bg-gray-50 p-4 rounded-lg overflow-x-auto">
-              {streamedText}
-              {isStreaming && <span className="inline-block w-2 h-4 bg-primary-500 animate-pulse ml-1"></span>}
-            </pre>
-          </div>
+        {/* 다시 테스트 */}
+        <div className="text-center">
+          <Button variant="secondary" onClick={() => navigate('/quiz')}>
+            다시 테스트하기
+          </Button>
         </div>
-
-        {/* 완료 후 버튼 */}
-        {!isStreaming && parsedResult && (
-          <div className="flex justify-center gap-4">
-            <Button variant="secondary" onClick={() => navigate('/quiz')}>
-              다시 테스트
-            </Button>
-            <Button variant="primary" onClick={handleViewResult}>
-              추천 결과 보기
-            </Button>
-          </div>
-        )}
-
-        {/* 완료했지만 파싱 실패 시 */}
-        {!isStreaming && !parsedResult && streamedText && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-center">
-            <p className="text-yellow-800 mb-4">
-              결과를 파싱하는데 문제가 발생했어요. 다시 시도해주세요.
-            </p>
-            <Button variant="primary" onClick={() => navigate('/quiz')}>
-              다시 시도하기
-            </Button>
-          </div>
-        )}
       </div>
     </div>
   );

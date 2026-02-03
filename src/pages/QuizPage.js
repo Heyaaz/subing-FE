@@ -15,7 +15,7 @@ const QuizPage = () => {
 
   const [quizData, setQuizData] = useState({
     interests: [],
-    budget: 30000,
+    budget: null,
     purpose: '',
     priorities: []
   });
@@ -46,6 +46,10 @@ const QuizPage = () => {
   const handleSubmit = () => {
     if (quizData.interests.length === 0) {
       alert('관심 분야를 하나 이상 선택해주세요.');
+      return;
+    }
+    if (quizData.budget == null) {
+      alert('월 예산을 선택해주세요.');
       return;
     }
     if (!quizData.purpose) {
@@ -101,18 +105,22 @@ const QuizPage = () => {
           <div className="quiz-step">
             <h2 className="text-2xl font-bold mb-6 text-gray-900">월 예산을 선택해주세요</h2>
             <div className="space-y-4">
-              {[10000, 30000, 50000, 100000].map(budget => (
+              {[
+                { value: 30000, label: '3만원 이하' },
+                { value: 50000, label: '5만원 이하' },
+                { value: 100000, label: '10만원 이하' },
+                { value: 150000, label: '10만원 이상' }
+              ].map(option => (
                 <button
-                  key={budget}
-                  onClick={() => setQuizData(prev => ({ ...prev, budget }))}
+                  key={option.value}
+                  onClick={() => setQuizData(prev => ({ ...prev, budget: option.value }))}
                   className={`w-full p-6 rounded-lg border-2 transition text-left ${
-                    quizData.budget === budget
+                    quizData.budget === option.value
                       ? 'border-primary-500 bg-primary-50 text-primary-700'
                       : 'border-gray-200 hover:border-gray-300 text-gray-700'
                   }`}
                 >
-                  <span className="text-xl font-semibold">{budget.toLocaleString()}원</span>
-                  <span className="text-sm ml-2 text-gray-500">이하</span>
+                  <span className="text-xl font-semibold">{option.label}</span>
                 </button>
               ))}
             </div>
@@ -254,6 +262,11 @@ const QuizPage = () => {
             <Button
               variant="primary"
               onClick={() => setStep(step + 1)}
+              disabled={
+                (step === 1 && quizData.interests.length === 0) ||
+                (step === 2 && quizData.budget == null) ||
+                (step === 3 && !quizData.purpose)
+              }
             >
               다음
             </Button>
@@ -261,6 +274,7 @@ const QuizPage = () => {
             <Button
               variant="primary"
               onClick={handleSubmit}
+              disabled={quizData.priorities.length === 0}
             >
               추천 받기
             </Button>

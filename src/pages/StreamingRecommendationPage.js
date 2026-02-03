@@ -17,6 +17,10 @@ const StreamingRecommendationPage = () => {
   const [error, setError] = useState(null);
   const [parsedResult, setParsedResult] = useState(null);
 
+  // 서비스 정보 조회 상태
+  const [servicesInfo, setServicesInfo] = useState({});
+  const [loadingServices, setLoadingServices] = useState(false);
+
   // 피드백 상태 관리
   const [feedbackStatus, setFeedbackStatus] = useState({}); // { [recommendationId]: 'like' | 'dislike' }
   const [toastMessage, setToastMessage] = useState('');
@@ -152,6 +156,50 @@ const StreamingRecommendationPage = () => {
       }
     }
   }, [isStreaming, streamedText, parsedResult]);
+
+  // 추천 결과 파싱 후 서비스 정보 조회
+  useEffect(() => {
+    if (parsedResult?.recommendations) {
+      const fetchServicesInfo = async () => {
+        setLoadingServices(true);
+        const info = {};
+        for (const rec of parsedResult.recommendations) {
+          if (rec.serviceId) {
+            try {
+              const response = await serviceService.getServiceById(rec.serviceId);
+              if (response.data) {
+                info[rec.serviceId] = response.data;
+              }
+            } catch (error) {
+              console.error(`서비스 정보 조회 실패 (ID: ${rec.serviceId})`, error);
+            }
+          }
+        }
+        setServicesInfo(info);
+        setLoadingServices(false);
+      };
+      fetchServicesInfo();
+    }
+  }, [parsedResult]);
+
+  // 카테고리 레이블 매핑 함수
+  const getCategoryLabel = (category) => {
+    const labels = {
+      'OTT': '영상',
+      'MUSIC': '음악',
+      'CLOUD_STORAGE': '클라우드',
+      'AI_TOOL': 'AI 도구',
+      'PRODUCTIVITY': '생산성',
+      'FITNESS': '운동',
+      'EDUCATION': '교육',
+      'FOOD': '음식',
+      'SHOPPING': '쇼핑',
+      'NEWS': '뉴스',
+      'GAME': '게임',
+      'ETC': '기타'
+    };
+    return labels[category] || category;
+  };
 
   // 피드백 제출 핸들러
   const handleFeedback = async (recommendationIndex, feedbackType) => {
@@ -435,6 +483,7 @@ const StreamingRecommendationPage = () => {
           {parsedResult?.recommendations?.map((rec, index) => {
             const isHidden = hiddenCards.has(index);
             const isCollapsed = collapsedCards.has(index);
+            const serviceInfo = servicesInfo[rec.serviceId];
 
             if (isHidden) return null;
 
@@ -444,11 +493,32 @@ const StreamingRecommendationPage = () => {
                 className={isCollapsed ? 'collapse' : ''}
               >
                 <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-2xl font-bold text-gray-900">{rec.serviceName}</h3>
-                    <p className="text-gray-600 mt-1">추천 점수: <span className="font-semibold text-primary-600">{rec.score}/100</span></p>
+                  <div className="flex items-center gap-3">
+                    {serviceInfo?.iconUrl && (
+                      <img
+                        src={serviceInfo.iconUrl}
+                        alt={rec.serviceName}
+                        className="w-12 h-12 rounded-lg object-contain bg-white border border-gray-200"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                    )}
+
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-2xl font-bold text-gray-900">{rec.serviceName}</h3>
+                        {serviceInfo?.category && (
+                          <span className="px-2 py-1 bg-primary-100 text-primary-700 text-xs rounded-full font-medium">
+                            {getCategoryLabel(serviceInfo.category)}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-gray-600 mt-1">추천 점수: <span className="font-semibold text-primary-600">{rec.score}/100</span></p>
+                    </div>
                   </div>
-                  <span className="inline-block bg-primary-500 text-white rounded-full w-10 h-10 flex items-center justify-center text-xl font-bold">
+
+                  <span className="inline-block bg-primary-500 text-white rounded-full w-10 h-10 flex items-center justify-center text-xl font-bold shrink-0">
                     {index + 1}
                   </span>
                 </div>
@@ -554,13 +624,23 @@ const StreamingRecommendationPage = () => {
 
                       {/* 2차 CTA - 3개 버튼 */}
                       <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          onClick={() => handleGoToOfficialSite(rec.serviceName)}
-                          className="flex-1"
-                        >
-                          공식 사이트
-                        </Button>
+                        {serviceInfo?.officialUrl ? (
+                          <Button
+                            variant="ghost"
+                            onClick={() => window.open(serviceInfo.officialUrl, '_blank')}
+                            className="flex-1"
+                          >
+                            공식 사이트
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(rec.serviceName)}+공식+사이트`, '_blank')}
+                            className="flex-1"
+                          >
+                            공식 사이트
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           onClick={() => handleSaveLater(index)}

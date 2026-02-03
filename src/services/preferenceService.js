@@ -25,11 +25,10 @@ const preferenceService = {
 
   /**
    * 내 성향 프로필 조회
-   * @param {number} userId - 사용자 ID
    * @returns {Promise} 프로필 데이터
    */
-  getProfile: (userId) => {
-    return api.get(`/preferences/profile?userId=${userId}`);
+  getProfile: () => {
+    return api.get(`/preferences/profile`);
   },
 
   /**

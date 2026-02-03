@@ -21,7 +21,7 @@ function PreferenceProfilePage() {
         return;
       }
 
-      const response = await preferenceService.getProfile(user.id);
+      const response = await preferenceService.getProfile();
       if (response.data && response.data.data) {
         setProfile(response.data.data);
       } else {

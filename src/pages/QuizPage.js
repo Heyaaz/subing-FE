@@ -25,7 +25,7 @@ const QuizPage = () => {
     const checkPreference = async () => {
       if (!user?.id) return;
       try {
-        const profile = await preferenceService.getProfile(user.id);
+        const profile = await preferenceService.getProfile();
         setHasPreference(!!profile);
       } catch (error) {
         setHasPreference(false);

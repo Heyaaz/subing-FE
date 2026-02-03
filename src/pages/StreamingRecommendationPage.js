@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { recommendationService } from '../services/recommendationService';
-import { Button, Card, RecommendationSkeleton } from '../components/common';
+import { Button, Card, RecommendationSkeleton, Toast } from '../components/common';
 
 const StreamingRecommendationPage = () => {
   const navigate = useNavigate();
@@ -12,6 +12,11 @@ const StreamingRecommendationPage = () => {
   const [isStreaming, setIsStreaming] = useState(true);
   const [error, setError] = useState(null);
   const [parsedResult, setParsedResult] = useState(null);
+
+  // 피드백 상태 관리
+  const [feedbackStatus, setFeedbackStatus] = useState({}); // { [recommendationId]: 'like' | 'dislike' }
+  const [toastMessage, setToastMessage] = useState('');
+  const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
     if (!userId || !quizData) {
@@ -108,6 +113,35 @@ const StreamingRecommendationPage = () => {
       }
     }
   }, [isStreaming, streamedText, parsedResult]);
+
+  // 피드백 제출 핸들러
+  const handleFeedback = async (recommendationIndex, feedbackType) => {
+    // 이미 피드백을 남긴 경우 중복 방지
+    if (feedbackStatus[recommendationIndex]) {
+      return;
+    }
+
+    try {
+      // 피드백 상태 업데이트
+      setFeedbackStatus(prev => ({
+        ...prev,
+        [recommendationIndex]: feedbackType
+      }));
+
+      // 토스트 메시지 표시
+      if (feedbackType === 'like') {
+        setToastMessage('좋은 추천이었군요! 비슷한 서비스를 더 추천해드릴게요');
+      } else {
+        setToastMessage('피드백 감사합니다! 다음엔 더 나은 추천을 드릴게요');
+      }
+      setShowToast(true);
+
+      // TODO: 실제 API 호출 (필요시)
+      // await recommendationService.submitFeedback(userId, recommendationIndex, feedbackType);
+    } catch (error) {
+      console.error('피드백 제출 실패:', error);
+    }
+  };
 
   if (error) {
     return (
@@ -244,6 +278,51 @@ const StreamingRecommendationPage = () => {
                 </div>
               )}
 
+              {/* 피드백 섹션 */}
+              <div className="border-t border-gray-200 pt-4 mb-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-600">이 추천이 도움이 되었나요?</p>
+                  <div className="flex gap-2">
+                    {feedbackStatus[index] ? (
+                      <span className="text-sm text-gray-500 font-medium">
+                        피드백 완료
+                      </span>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => handleFeedback(index, 'like')}
+                          className="flex items-center gap-1 px-4 py-2 rounded-lg border border-gray-300 hover:border-success-500 hover:bg-success-50 transition-colors"
+                          disabled={!!feedbackStatus[index]}
+                        >
+                          <span className="text-lg">👍</span>
+                          <span className="text-sm text-gray-700">좋아요</span>
+                        </button>
+                        <button
+                          onClick={() => handleFeedback(index, 'dislike')}
+                          className="flex items-center gap-1 px-4 py-2 rounded-lg border border-gray-300 hover:border-error-500 hover:bg-error-50 transition-colors"
+                          disabled={!!feedbackStatus[index]}
+                        >
+                          <span className="text-lg">👎</span>
+                          <span className="text-sm text-gray-700">별로예요</span>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+                {feedbackStatus[index] && (
+                  <div className="mt-2 text-center">
+                    <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
+                      feedbackStatus[index] === 'like'
+                        ? 'bg-success-100 text-success-800'
+                        : 'bg-error-100 text-error-800'
+                    }`}>
+                      {feedbackStatus[index] === 'like' ? '👍' : '👎'}
+                      {feedbackStatus[index] === 'like' ? '도움됨' : '별로'}
+                    </span>
+                  </div>
+                )}
+              </div>
+
               {/* 구독 관리 이동 */}
               <Button
                 variant="primary"
@@ -278,6 +357,14 @@ const StreamingRecommendationPage = () => {
             다시 테스트하기
           </Button>
         </div>
+
+        {/* 토스트 메시지 */}
+        <Toast
+          message={toastMessage}
+          isVisible={showToast}
+          onClose={() => setShowToast(false)}
+          duration={2500}
+        />
       </div>
     </div>
   );

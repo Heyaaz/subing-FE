@@ -7,3 +7,4 @@ export { default as Alert } from './Alert';
 export { default as EmptyState } from './EmptyState';
 export { default as Select } from './Select';
 export { default as RecommendationSkeleton } from './RecommendationSkeleton';
+export { default as Toast } from './Toast';

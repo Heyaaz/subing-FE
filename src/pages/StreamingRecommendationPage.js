@@ -506,15 +506,36 @@ const StreamingRecommendationPage = () => {
                     )}
 
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="text-2xl font-bold text-gray-900">{rec.serviceName}</h3>
+
+                        {/* 카테고리 뱃지 */}
                         {serviceInfo?.category && (
                           <span className="px-2 py-1 bg-primary-100 text-primary-700 text-xs rounded-full font-medium">
                             {getCategoryLabel(serviceInfo.category)}
                           </span>
                         )}
+
+                        {/* 무료 플랜 뱃지 */}
+                        {rec.hasFreePlan && (
+                          <span className="px-2 py-1 bg-success-100 text-success-700 text-xs rounded-full font-medium">
+                            무료 플랜
+                          </span>
+                        )}
                       </div>
-                      <p className="text-gray-600 mt-1">추천 점수: <span className="font-semibold text-primary-600">{rec.score}/100</span></p>
+
+                      {/* 추천 점수 + 가격 정보 */}
+                      <div className="flex items-center gap-3 mt-1">
+                        <p className="text-gray-600">
+                          추천 점수: <span className="font-semibold text-primary-600">{rec.score}/100</span>
+                        </p>
+
+                        {rec.priceRange && (
+                          <span className="text-gray-500 text-sm">
+                            • {rec.priceRange}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 

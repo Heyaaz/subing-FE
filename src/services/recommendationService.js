@@ -55,7 +55,7 @@ export const recommendationService = {
   },
 
   // AI 추천 스트리밍 (실시간 타이핑 효과)
-  async getAIRecommendationsStream(userId, quizData, onChunk, onComplete, onError, signal) {
+  async getAIRecommendationsStream(userId, quizData, onChunk, onComplete, onError, signal, onResult) {
     const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api/v1';
     const token = localStorage.getItem('token');
 
@@ -81,6 +81,7 @@ export const recommendationService = {
       const decoder = new TextDecoder();
       let buffer = '';
       let currentEvent = 'message';
+      let accumulatedData = []; // 다중 라인 data 누적용
 
       while (true) {
         const { done, value } = await reader.read();
@@ -97,15 +98,31 @@ export const recommendationService = {
             currentEvent = line.slice(6).trim();
           } else if (line.startsWith('data:')) {
             const data = line.slice(5).trim();
+            accumulatedData.push(data);
+          } else if (line.trim() === '') {
+            // 빈 라인 = 이벤트 완료 (SSE 스펙)
+            if (accumulatedData.length > 0) {
+              const fullData = accumulatedData.join('\n');
+              accumulatedData = [];
 
-            if (currentEvent === 'done') {
-              if (onComplete) onComplete();
-            } else if (currentEvent === 'error') {
-              if (onError) onError(data);
-            } else {
-              if (onChunk) onChunk(data);
+              if (currentEvent === 'result') {
+                try {
+                  console.log('[SSE] result 이벤트 수신, 데이터 길이:', fullData.length);
+                  if (onResult) onResult(JSON.parse(fullData));
+                } catch (e) {
+                  console.error('[SSE] result 파싱 실패:', e);
+                  /* 파싱 실패 시 fallback으로 streamedText 파싱 사용 */
+                }
+              } else if (currentEvent === 'done') {
+                if (onComplete) onComplete();
+              } else if (currentEvent === 'error') {
+                if (onError) onError(fullData);
+              } else {
+                if (onChunk) onChunk(fullData);
+              }
+
+              currentEvent = 'message'; // 이벤트 처리 후 리셋
             }
-            currentEvent = 'message';
           }
         }
       }

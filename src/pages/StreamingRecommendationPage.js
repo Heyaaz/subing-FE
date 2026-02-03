@@ -39,7 +39,8 @@ const StreamingRecommendationPage = () => {
               setIsStreaming(false);
             }
           },
-          controller.signal
+          controller.signal,
+          (result) => { setParsedResult(result); }
         );
       } catch (err) {
         if (!controller.signal.aborted) {
@@ -55,16 +56,51 @@ const StreamingRecommendationPage = () => {
     return () => controller.abort();
   }, [userId, quizData, navigate]);
 
+  /** 스트림 텍스트에서 첫 번째 완전한 JSON 객체만 추출 (JSON 뒤에 붙은 텍스트 무시) */
+  const extractFirstJson = (text) => {
+    const cleaned = text
+      .replace(/```json\s*/g, '')
+      .replace(/```\s*/g, '')
+      .trim();
+    const start = cleaned.indexOf('{');
+    if (start === -1) return null;
+    let depth = 0;
+    let inString = false;
+    let escape = false;
+    for (let i = start; i < cleaned.length; i++) {
+      const c = cleaned[i];
+      if (escape) {
+        escape = false;
+        continue;
+      }
+      if (inString) {
+        if (c === '\\') escape = true;
+        else if (c === '"') inString = false;
+        continue;
+      }
+      if (c === '"') {
+        inString = true;
+        continue;
+      }
+      if (c === '{') depth++;
+      else if (c === '}') {
+        depth--;
+        if (depth === 0) return cleaned.slice(start, i + 1);
+      }
+    }
+    return null;
+  };
+
   // 스트리밍 완료 후 JSON 파싱 시도
   useEffect(() => {
     if (!isStreaming && streamedText && !parsedResult) {
       try {
-        // 마크다운 코드펜스 제거 (방어적 파싱)
-        const cleanJson = streamedText
-          .replace(/```json\s*/g, '')
-          .replace(/```\s*/g, '')
-          .trim();
-        const parsed = JSON.parse(cleanJson);
+        const jsonStr = extractFirstJson(streamedText);
+        if (!jsonStr) {
+          setError('결과를 처리하는 중 문제가 발생했어요');
+          return;
+        }
+        const parsed = JSON.parse(jsonStr);
         setParsedResult(parsed);
       } catch (e) {
         console.error('JSON 파싱 실패:', e);
@@ -106,10 +142,30 @@ const StreamingRecommendationPage = () => {
   if (isStreaming) {
     return (
       <div className="container mx-auto px-4 py-8">
+        <style>{`
+          @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+          }
+          .shimmer {
+            background: linear-gradient(90deg, #e5e7eb 0%, #f3f4f6 50%, #e5e7eb 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite linear;
+            animation-delay: var(--shimmer-delay, 0ms);
+          }
+          @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+          }
+          .blink {
+            animation: blink 1.2s ease-in-out infinite;
+          }
+        `}</style>
+
         <div className="max-w-4xl mx-auto">
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              AI가 분석 중이에요…
+              AI가 분석 중이에요<span className="blink">…</span>
             </h1>
             <p className="text-gray-600">
               취향/예산/목적을 반영해 추천을 만들고 있어요
@@ -117,9 +173,9 @@ const StreamingRecommendationPage = () => {
           </div>
 
           <div className="space-y-6">
-            <RecommendationSkeleton />
-            <RecommendationSkeleton />
-            <RecommendationSkeleton />
+            <RecommendationSkeleton delay={0} />
+            <RecommendationSkeleton delay={150} />
+            <RecommendationSkeleton delay={300} />
           </div>
         </div>
       </div>

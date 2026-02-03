@@ -118,8 +118,7 @@ const Dashboard = () => {
 
   const getBudgetPercentage = () => {
     if (!dashboardData.budget || !dashboardData.monthlyExpense) return 0;
-    const percentage = (dashboardData.monthlyExpense.totalAmount / dashboardData.budget.monthlyLimit) * 100;
-    return Math.min(percentage, 100);
+    return (dashboardData.monthlyExpense.totalAmount / dashboardData.budget.monthlyLimit) * 100;
   };
 
   if (loading) {
@@ -172,18 +171,22 @@ const Dashboard = () => {
             <div className="text-sm font-medium text-gray-600 mb-2">📊 예산 사용률</div>
             {dashboardData.budget ? (
               <>
-                <div className="text-4xl font-bold text-warning-600 mb-1">
+                <div className={`text-4xl font-bold mb-1 ${
+                  getBudgetPercentage() > 100 ? 'text-error-600' :
+                  getBudgetPercentage() >= 80 ? 'text-warning-600' :
+                  'text-success-600'
+                }`}>
                   {getBudgetPercentage().toFixed(0)}
                   <span className="text-lg text-gray-500 ml-1">%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
                   <div
                     className={`h-2 rounded-full transition-all ${
-                      getBudgetPercentage() >= 100 ? 'bg-error-500' :
+                      getBudgetPercentage() > 100 ? 'bg-error-500' :
                       getBudgetPercentage() >= 80 ? 'bg-warning-500' :
                       'bg-success-500'
                     }`}
-                    style={{ width: `${getBudgetPercentage()}%` }}
+                    style={{ width: `${Math.min(getBudgetPercentage(), 100)}%` }}
                   />
                 </div>
               </>
@@ -204,25 +207,6 @@ const Dashboard = () => {
 
         {/* 행동 유도형 요약 카드 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* 결제 예정 요약 */}
-          <Card
-            className="cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => navigate('/subscriptions')}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 mb-1">7일 내 결제 예정</p>
-                <p className="text-3xl font-bold text-gray-900">
-                  {dashboardData.upcomingPayments.length}건
-                </p>
-                <p className="text-sm text-gray-600 mt-1">
-                  {formatCurrency(dashboardData.upcomingPayments.reduce((sum, p) => sum + (p.price || 0), 0))}
-                </p>
-              </div>
-              <div className="text-4xl">📅</div>
-            </div>
-          </Card>
-
           {/* 중복 의심 */}
           {dashboardData.optimizationData?.duplicateServices?.length > 0 && (
             <Card

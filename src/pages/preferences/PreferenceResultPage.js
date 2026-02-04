@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import preferenceService from '../../services/preferenceService';
 import { authService } from '../../services/authService';
@@ -9,8 +9,14 @@ function PreferenceResultPage() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const isSubmittingRef = useRef(false);
 
   useEffect(() => {
+    // 중복 요청 방지 (React StrictMode에서 useEffect 두 번 실행됨)
+    if (isSubmittingRef.current) {
+      return;
+    }
+
     // location.state에서 answers 가져오기
     const answers = location.state?.answers || [];
 
@@ -21,6 +27,7 @@ function PreferenceResultPage() {
     }
 
     // 답변 제출 및 결과 받기
+    isSubmittingRef.current = true;
     submitAnswers(answers);
   }, [location, navigate]);
 
@@ -28,6 +35,7 @@ function PreferenceResultPage() {
     try {
       const user = authService.getCurrentUser();
       if (!user || !user.id) {
+        isSubmittingRef.current = false;
         navigate('/login');
         return;
       }
@@ -41,6 +49,7 @@ function PreferenceResultPage() {
       console.error('답변 제출 실패:', error);
       setError('분석 중 오류가 발생했어요. 다시 시도해주세요.');
       setLoading(false);
+      isSubmittingRef.current = false;
     }
   };
 

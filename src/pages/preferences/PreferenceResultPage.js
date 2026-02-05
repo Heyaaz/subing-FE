@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import preferenceService from '../../services/preferenceService';
 import { authService } from '../../services/authService';
+import { Toast } from '../../components/common';
 
 function PreferenceResultPage() {
   const navigate = useNavigate();
@@ -10,6 +11,8 @@ function PreferenceResultPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const isSubmittingRef = useRef(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   useEffect(() => {
     // 중복 요청 방지 (React StrictMode에서 useEffect 두 번 실행됨)
@@ -43,6 +46,8 @@ function PreferenceResultPage() {
       const response = await preferenceService.submitAnswers(user.id, { answers });
       if (response.data && response.data.data) {
         setResult(response.data.data);
+        setToastMessage('성향 프로필이 저장되었어요!');
+        setShowToast(true);
       }
       setLoading(false);
     } catch (error) {
@@ -225,14 +230,22 @@ function PreferenceResultPage() {
           </button>
         </div>
 
-        {/* 프로필 저장 */}
+        {/* 프로필 보기 */}
         <button
           onClick={() => navigate('/preferences/profile')}
           className="w-full py-4 px-6 rounded-xl text-blue-600 font-medium hover:bg-blue-50 transition-all duration-200"
         >
-          내 프로필 저장하기
+          내 프로필 보러가기
         </button>
       </div>
+
+      {/* 토스트 메시지 */}
+      <Toast
+        message={toastMessage}
+        isVisible={showToast}
+        onClose={() => setShowToast(false)}
+        duration={3000}
+      />
     </div>
   );
 }

@@ -8,3 +8,4 @@ export { default as EmptyState } from './EmptyState';
 export { default as Select } from './Select';
 export { default as RecommendationSkeleton } from './RecommendationSkeleton';
 export { default as Toast } from './Toast';
+export { default as ConfirmModal } from './ConfirmModal';

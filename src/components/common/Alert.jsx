@@ -15,8 +15,7 @@ const Alert = ({
   title,
   children,
   onClose,
-  className = '',
-  ...props
+  className = ''
 }) => {
   const variantStyles = {
     success: 'bg-success-50 border-success-500 text-success-800',
@@ -30,7 +29,7 @@ const Alert = ({
   const finalClassName = `${baseStyles} ${variantStyles[variant]} ${className}`;
 
   return (
-    <div className={finalClassName} {...props}>
+    <div className={finalClassName} role="alert">
       <div className="flex justify-between items-start">
         <div className="flex-1">
           {title && (

@@ -186,12 +186,13 @@ const QuizPage = () => {
               {SERVICE_CATEGORIES.map(({ value, label }) => {
                 const isSelected = quizData.interests.includes(value);
                 const isDisabled = !isSelected && quizData.interests.length >= MAX_INTERESTS;
+                const selectionIndex = quizData.interests.indexOf(value) + 1;
                 return (
                   <button
                     key={value}
                     onClick={() => handleInterestToggle(value)}
                     disabled={isDisabled}
-                    className={`p-6 rounded-lg border-2 transition font-semibold ${
+                    className={`p-6 rounded-lg border-2 transition font-semibold flex items-center justify-between ${
                       isSelected
                         ? 'border-primary-500 bg-primary-50 text-primary-700'
                         : isDisabled
@@ -199,10 +200,10 @@ const QuizPage = () => {
                         : 'border-gray-200 hover:border-gray-300 text-gray-700'
                     }`}
                   >
-                    {label}
+                    <span>{label}</span>
                     {isSelected && (
-                      <span className="ml-2 text-xs bg-primary-500 text-white rounded-full px-2 py-0.5">
-                        {quizData.interests.indexOf(value) + 1}
+                      <span className="bg-primary-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shrink-0">
+                        {selectionIndex}
                       </span>
                     )}
                   </button>

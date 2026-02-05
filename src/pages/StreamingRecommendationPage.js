@@ -293,6 +293,35 @@ const StreamingRecommendationPage = () => {
     }));
   };
 
+  // 금액 입력 핸들러 (숫자만 허용)
+  const handlePriceChange = (e) => {
+    const value = e.target.value.replace(/[^0-9]/g, '');
+    setFormData(prev => ({
+      ...prev,
+      monthlyPrice: value
+    }));
+  };
+
+  // 금액 포맷팅 (천단위 구분자)
+  const formatPrice = (price) => {
+    if (!price) return '';
+    return Number(price).toLocaleString();
+  };
+
+  // 결제일 입력 핸들러 (1-31 범위 검증)
+  const handleBillingDateChange = (e) => {
+    let value = e.target.value.replace(/[^0-9]/g, '');
+    if (value) {
+      const num = parseInt(value, 10);
+      if (num > 31) value = '31';
+      else if (num === 0) value = '';
+    }
+    setFormData(prev => ({
+      ...prev,
+      billingDate: value
+    }));
+  };
+
   const filteredServices = services.filter(s =>
     (s.name || s.serviceName || '').toLowerCase().includes((serviceSearchQuery || '').toLowerCase())
   );
@@ -464,7 +493,45 @@ const StreamingRecommendationPage = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">당신을 위한 추천</h1>
-        <p className="text-gray-600 mb-8">AI가 분석한 맞춤 구독 서비스예요</p>
+        <p className="text-gray-600 mb-4">AI가 분석한 맞춤 구독 서비스예요</p>
+
+        {/* 선택 요약 카드 */}
+        {quizData?.interests?.length > 0 && (
+          <Card className="mb-6 bg-primary-50 border border-primary-100">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-sm font-medium text-primary-700">선택한 관심분야:</span>
+              <div className="flex flex-wrap gap-2">
+                {quizData.interests?.map((interest, idx) => {
+                  const categoryLabels = {
+                    'OTT': '영상',
+                    'MUSIC': '음악',
+                    'CLOUD_STORAGE': '클라우드',
+                    'AI_TOOL': 'AI 도구',
+                    'PRODUCTIVITY': '생산성',
+                    'FITNESS': '운동',
+                    'EDUCATION': '교육',
+                    'FOOD': '음식',
+                    'SHOPPING': '쇼핑',
+                    'NEWS': '뉴스',
+                    'GAME': '게임',
+                    'ETC': '기타'
+                  };
+                  return (
+                    <span
+                      key={interest}
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-white text-primary-700 rounded-full text-sm font-medium border border-primary-200"
+                    >
+                      <span className="bg-primary-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                        {idx + 1}
+                      </span>
+                      {categoryLabels[interest] || interest}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          </Card>
+        )}
 
         {/* 추천 카드 */}
         <div className="space-y-6 mb-8">
@@ -506,16 +573,31 @@ const StreamingRecommendationPage = () => {
                       </div>
 
                       {/* 추천 점수 + 가격 정보 */}
-                      <div className="flex items-center gap-3 mt-1">
-                        <p className="text-gray-600">
-                          추천 점수: <span className="font-semibold text-primary-600">{rec.score}/100</span>
-                        </p>
-
-                        {rec.priceRange && (
-                          <span className="text-gray-500 text-sm">
-                            • {rec.priceRange}
-                          </span>
-                        )}
+                      <div className="mt-2">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm text-gray-600">추천 점수:</span>
+                          <span className={`font-bold ${
+                            rec.score >= 80 ? 'text-success-600' :
+                            rec.score >= 60 ? 'text-primary-600' :
+                            'text-warning-600'
+                          }`}>{rec.score}/100</span>
+                          {rec.priceRange && (
+                            <span className="text-gray-500 text-sm ml-2">
+                              • {rec.priceRange}
+                            </span>
+                          )}
+                        </div>
+                        {/* 프로그래스 바 */}
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className={`h-2 rounded-full transition-all duration-500 ${
+                              rec.score >= 80 ? 'bg-success-500' :
+                              rec.score >= 60 ? 'bg-primary-500' :
+                              'bg-warning-500'
+                            }`}
+                            style={{ width: `${rec.score}%` }}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -567,22 +649,30 @@ const StreamingRecommendationPage = () => {
                 )}
 
                 {/* 피드백 섹션 */}
-                <div className="border-t border-gray-200 pt-4 mb-4">
-                  <div className="flex items-center justify-between">
+                <div className={`border-t border-gray-200 pt-4 mb-4 rounded-lg transition-all duration-300 ${
+                  feedbackStatus[index]?.submitted
+                    ? feedbackStatus[index]?.type === 'like'
+                      ? 'bg-success-50'
+                      : 'bg-error-50'
+                    : ''
+                }`}>
+                  <div className="flex items-center justify-between px-2">
                     <p className="text-sm text-gray-600">이 추천이 도움이 되었나요?</p>
                     <div className="flex gap-2">
                       {feedbackStatus[index]?.submitted ? (
-                        <span className="text-sm text-gray-500 font-medium">
+                        <span className={`text-sm font-medium ${
+                          feedbackStatus[index]?.type === 'like' ? 'text-success-700' : 'text-error-700'
+                        }`}>
                           피드백 완료
                         </span>
                       ) : (
                         <>
                           <button
                             onClick={() => handleFeedback(index, 'like')}
-                            className={`flex items-center gap-1 px-4 py-2 rounded-lg border transition-colors ${
+                            className={`flex items-center gap-1 px-4 py-2 rounded-lg border transition-all duration-200 ${
                               feedbackStatus[index]?.loading
                                 ? 'border-gray-200 bg-gray-50 cursor-not-allowed'
-                                : 'border-gray-300 hover:border-success-500 hover:bg-success-50'
+                                : 'border-gray-300 hover:border-success-500 hover:bg-success-50 hover:scale-105'
                             }`}
                             disabled={feedbackStatus[index]?.loading || feedbackStatus[index]?.submitted}
                           >
@@ -595,10 +685,10 @@ const StreamingRecommendationPage = () => {
                           </button>
                           <button
                             onClick={() => handleFeedback(index, 'dislike')}
-                            className={`flex items-center gap-1 px-4 py-2 rounded-lg border transition-colors ${
+                            className={`flex items-center gap-1 px-4 py-2 rounded-lg border transition-all duration-200 ${
                               feedbackStatus[index]?.loading
                                 ? 'border-gray-200 bg-gray-50 cursor-not-allowed'
-                                : 'border-gray-300 hover:border-error-500 hover:bg-error-50'
+                                : 'border-gray-300 hover:border-error-500 hover:bg-error-50 hover:scale-105'
                             }`}
                             disabled={feedbackStatus[index]?.loading || feedbackStatus[index]?.submitted}
                           >
@@ -614,11 +704,11 @@ const StreamingRecommendationPage = () => {
                     </div>
                   </div>
                   {feedbackStatus[index]?.submitted && (
-                    <div className="mt-2 text-center">
-                      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
+                    <div className="mt-3 text-center pb-2 transition-opacity duration-300">
+                      <span className={`inline-flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium shadow-sm ${
                         feedbackStatus[index]?.type === 'like'
-                          ? 'bg-success-100 text-success-800'
-                          : 'bg-error-100 text-error-800'
+                          ? 'bg-success-100 text-success-800 border border-success-200'
+                          : 'bg-error-100 text-error-800 border border-error-200'
                       }`}>
                         {feedbackStatus[index]?.type === 'like' ? '👍' : '👎'}
                         {feedbackStatus[index]?.type === 'like' ? '도움됨' : '별로'}
@@ -775,13 +865,13 @@ const StreamingRecommendationPage = () => {
                     className="w-24 shrink-0"
                   />
                   <input
-                    type="number"
+                    type="text"
                     name="monthlyPrice"
-                    value={formData.monthlyPrice}
-                    onChange={handleChange}
+                    value={formData.monthlyPrice ? formatPrice(formData.monthlyPrice) : ''}
+                    onChange={handlePriceChange}
                     className="input-field flex-1"
                     placeholder={formData.currency === 'USD' ? '달러 금액 입력' : '원 금액 입력'}
-                    min="1"
+                    inputMode="numeric"
                     required
                   />
                 </div>
@@ -803,29 +893,30 @@ const StreamingRecommendationPage = () => {
                   결제일 *
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   name="billingDate"
                   value={formData.billingDate}
-                  onChange={handleChange}
+                  onChange={handleBillingDateChange}
                   className="input-field"
                   placeholder="매월 몇 일 (1-31)"
-                  min="1"
-                  max="31"
+                  inputMode="numeric"
+                  maxLength="2"
                   required
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  시작월 *
+                  구독 시작월 *
                 </label>
+                <p className="text-xs text-gray-500 mb-2">구독을 시작한 년/월을 선택하세요</p>
                 <div className="flex gap-2">
                   <Select
                     name="startYear"
                     value={startYear}
                     onChange={handleStartYearChange}
                     options={yearOptions}
-                    placeholder="년"
+                    placeholder="년도"
                     className="flex-1"
                   />
                   <Select

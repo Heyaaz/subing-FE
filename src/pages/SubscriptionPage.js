@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { subscriptionService } from '../services/subscriptionService';
 import { serviceService } from '../services/serviceService';
-import { Button, Card, Alert, EmptyState, Select } from '../components/common';
+import { Button, Card, Alert, EmptyState, Select, ConfirmModal, Toast } from '../components/common';
 import Loading from '../components/Loading';
 import { SERVICE_CATEGORIES } from '../constants/serviceCategories';
 
@@ -35,6 +35,14 @@ const SubscriptionPage = () => {
   });
   const [serviceSearchQuery, setServiceSearchQuery] = useState('');
   const [serviceDropdownOpen, setServiceDropdownOpen] = useState(false);
+
+  // Toast 상태
+  const [toastMessage, setToastMessage] = useState('');
+  const [showToast, setShowToast] = useState(false);
+
+  // 삭제 확인 모달 상태
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
 
   useEffect(() => {
     if (user) {
@@ -80,6 +88,35 @@ const SubscriptionPage = () => {
     }));
   };
 
+  // 금액 입력 핸들러 (숫자만 허용)
+  const handlePriceChange = (e) => {
+    const value = e.target.value.replace(/[^0-9]/g, '');
+    setFormData(prev => ({
+      ...prev,
+      monthlyPrice: value
+    }));
+  };
+
+  // 금액 포맷팅 (천단위 구분자)
+  const formatPrice = (price) => {
+    if (!price) return '';
+    return Number(price).toLocaleString();
+  };
+
+  // 결제일 입력 핸들러 (1-31 범위 검증)
+  const handleBillingDateChange = (e) => {
+    let value = e.target.value.replace(/[^0-9]/g, '');
+    if (value) {
+      const num = parseInt(value, 10);
+      if (num > 31) value = '31';
+      else if (num === 0) value = '';
+    }
+    setFormData(prev => ({
+      ...prev,
+      billingDate: value
+    }));
+  };
+
   const filteredServices = services.filter(s =>
     (s.name || s.serviceName || '').toLowerCase().includes((serviceSearchQuery || '').toLowerCase())
   );
@@ -110,6 +147,12 @@ const SubscriptionPage = () => {
       setError('시작월을 선택해주세요.');
       return;
     }
+    // 결제일 범위 검증
+    const billingDateNum = parseInt(formData.billingDate, 10);
+    if (isNaN(billingDateNum) || billingDateNum < 1 || billingDateNum > 31) {
+      setError('결제일은 1~31 사이의 숫자를 입력해주세요.');
+      return;
+    }
     try {
       setError(null);
       const payload = {
@@ -117,7 +160,7 @@ const SubscriptionPage = () => {
         userId: user.id,
         monthlyPrice: parseInt(formData.monthlyPrice, 10),
         currency: formData.currency || 'KRW',
-        billingDate: parseInt(formData.billingDate, 10),
+        billingDate: billingDateNum,
         startedAt: formData.startMonth
       };
       await subscriptionService.createSubscription(payload);
@@ -133,23 +176,32 @@ const SubscriptionPage = () => {
         notes: ''
       });
       setServiceSearchQuery('');
-      loadSubscriptions();
+      await loadSubscriptions();
+      setToastMessage('구독이 추가되었어요!');
+      setShowToast(true);
     } catch (error) {
       setError('구독을 추가하지 못했어요. 다시 시도해주세요.');
       console.error('Add subscription error:', error);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('정말 이 구독을 삭제할까요?')) {
-      try {
-        await subscriptionService.deleteSubscription(id);
-        loadSubscriptions();
-      } catch (error) {
-        setError('구독을 삭제하지 못했어요. 다시 시도해주세요.');
-        console.error('Delete subscription error:', error);
-      }
+  const handleDeleteClick = (id) => {
+    setDeleteTargetId(id);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTargetId) return;
+    try {
+      await subscriptionService.deleteSubscription(deleteTargetId);
+      await loadSubscriptions();
+      setToastMessage('구독이 삭제되었어요.');
+      setShowToast(true);
+    } catch (error) {
+      setError('구독을 삭제하지 못했어요. 다시 시도해주세요.');
+      console.error('Delete subscription error:', error);
     }
+    setDeleteTargetId(null);
   };
 
   const handleToggleStatus = async (id, isActive) => {
@@ -417,7 +469,7 @@ const SubscriptionPage = () => {
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => handleDelete(subscription.id)}
+                  onClick={() => handleDeleteClick(subscription.id)}
                   className="flex-1"
                 >
                   삭제하기
@@ -459,7 +511,21 @@ const SubscriptionPage = () => {
                       if (!e.target.value) setFormData(prev => ({ ...prev, serviceId: '' }));
                     }}
                     onFocus={() => setServiceDropdownOpen(true)}
-                    onBlur={() => setTimeout(() => setServiceDropdownOpen(false), 200)}
+                    onBlur={() => {
+                      setTimeout(() => {
+                        setServiceDropdownOpen(false);
+                        // onBlur 시 정확히 일치하는 서비스가 있으면 자동 선택
+                        if (serviceSearchQuery && !formData.serviceId) {
+                          const exactMatch = services.find(s =>
+                            (s.name || s.serviceName || '').toLowerCase() === serviceSearchQuery.toLowerCase()
+                          );
+                          if (exactMatch) {
+                            setFormData(prev => ({ ...prev, serviceId: exactMatch.id }));
+                            setServiceSearchQuery('');
+                          }
+                        }
+                      }, 200);
+                    }}
                     className="input-field"
                     placeholder="서비스명 검색 또는 선택"
                     autoComplete="off"
@@ -513,13 +579,13 @@ const SubscriptionPage = () => {
                       className="w-24 shrink-0"
                     />
                     <input
-                      type="number"
+                      type="text"
                       name="monthlyPrice"
-                      value={formData.monthlyPrice}
-                      onChange={handleChange}
+                      value={formData.monthlyPrice ? formatPrice(formData.monthlyPrice) : ''}
+                      onChange={handlePriceChange}
                       className="input-field flex-1"
                       placeholder={formData.currency === 'USD' ? '달러 금액 입력' : '원 금액 입력'}
-                      min="1"
+                      inputMode="numeric"
                       required
                     />
                   </div>
@@ -541,29 +607,30 @@ const SubscriptionPage = () => {
                     결제일 *
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     name="billingDate"
                     value={formData.billingDate}
-                    onChange={handleChange}
+                    onChange={handleBillingDateChange}
                     className="input-field"
                     placeholder="매월 몇 일 (1-31)"
-                    min="1"
-                    max="31"
+                    inputMode="numeric"
+                    maxLength="2"
                     required
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    시작월 *
+                    구독 시작월 *
                   </label>
+                  <p className="text-xs text-gray-500 mb-2">구독을 시작한 년/월을 선택하세요</p>
                   <div className="flex gap-2">
                     <Select
                       name="startYear"
                       value={startYear}
                       onChange={handleStartYearChange}
                       options={yearOptions}
-                      placeholder="년"
+                      placeholder="년도"
                       className="flex-1"
                     />
                     <Select
@@ -662,13 +729,13 @@ const SubscriptionPage = () => {
                       className="w-24 shrink-0"
                     />
                     <input
-                      type="number"
+                      type="text"
                       name="monthlyPrice"
-                      value={formData.monthlyPrice}
-                      onChange={handleChange}
+                      value={formData.monthlyPrice ? formatPrice(formData.monthlyPrice) : ''}
+                      onChange={handlePriceChange}
                       className="input-field flex-1"
                       placeholder={formData.currency === 'USD' ? '달러 금액 입력' : '원 금액 입력'}
-                      min="1"
+                      inputMode="numeric"
                       required
                     />
                   </div>
@@ -690,29 +757,30 @@ const SubscriptionPage = () => {
                     결제일 *
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     name="billingDate"
                     value={formData.billingDate}
-                    onChange={handleChange}
+                    onChange={handleBillingDateChange}
                     className="input-field"
                     placeholder="매월 몇 일 (1-31)"
-                    min="1"
-                    max="31"
+                    inputMode="numeric"
+                    maxLength="2"
                     required
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    시작월 *
+                    구독 시작월 *
                   </label>
+                  <p className="text-xs text-gray-500 mb-2">구독을 시작한 년/월을 선택하세요</p>
                   <div className="flex gap-2">
                     <Select
                       name="startYear"
                       value={startYear}
                       onChange={handleStartYearChange}
                       options={yearOptions}
-                      placeholder="년"
+                      placeholder="년도"
                       className="flex-1"
                     />
                     <Select
@@ -761,6 +829,26 @@ const SubscriptionPage = () => {
             </div>
           </div>
         )}
+
+        {/* 삭제 확인 모달 */}
+        <ConfirmModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleDeleteConfirm}
+          title="구독 삭제"
+          message="이 구독을 정말 삭제할까요? 삭제된 구독은 복구할 수 없어요."
+          confirmText="삭제하기"
+          cancelText="취소"
+          variant="danger"
+        />
+
+        {/* 토스트 메시지 */}
+        <Toast
+          message={toastMessage}
+          isVisible={showToast}
+          onClose={() => setShowToast(false)}
+          duration={2500}
+        />
     </div>
   );
 };

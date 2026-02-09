@@ -131,7 +131,7 @@ const Dashboard = () => {
         {/* 헤더 */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            안녕하세요, {user?.name}님! 👋
+            안녕하세요, {user?.name}님!
           </h1>
           <p className="text-gray-600">
             오늘도 현명한 구독 관리를 시작해볼까요?
@@ -142,7 +142,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {/* 총 지출 */}
           <Card>
-            <div className="text-sm font-medium text-gray-600 mb-2">💰 이번 달 총 지출</div>
+            <div className="text-sm font-medium text-gray-600 mb-2">이번 달 총 지출</div>
             <div className="text-4xl font-bold text-primary-600 mb-1">
               {formatCurrency(dashboardData.monthlyExpense?.totalAmount || 0)}
               <span className="text-lg text-gray-500 ml-1">원</span>
@@ -156,7 +156,7 @@ const Dashboard = () => {
 
           {/* 활성 구독 */}
           <Card>
-            <div className="text-sm font-medium text-gray-600 mb-2">📦 활성 구독</div>
+            <div className="text-sm font-medium text-gray-600 mb-2">활성 구독</div>
             <div className="text-4xl font-bold text-success-600 mb-1">
               {dashboardData.activeSubscriptions.length}
               <span className="text-lg text-gray-500 ml-1">개</span>
@@ -168,7 +168,7 @@ const Dashboard = () => {
 
           {/* 예산 사용률 */}
           <Card>
-            <div className="text-sm font-medium text-gray-600 mb-2">📊 예산 사용률</div>
+            <div className="text-sm font-medium text-gray-600 mb-2">예산 사용률</div>
             {dashboardData.budget ? (
               <>
                 <div className={`text-4xl font-bold mb-1 ${
@@ -221,7 +221,7 @@ const Dashboard = () => {
                   </p>
                   <p className="text-sm text-warning-600 mt-1">카테고리 확인 필요</p>
                 </div>
-                <div className="text-4xl">⚠️</div>
+                <div></div>
               </div>
             </Card>
           )}
@@ -240,7 +240,7 @@ const Dashboard = () => {
                   </p>
                   <p className="text-sm text-success-600 mt-1">월 기준</p>
                 </div>
-                <div className="text-4xl">💰</div>
+                <div></div>
               </div>
             </Card>
           )}
@@ -250,7 +250,7 @@ const Dashboard = () => {
           {/* 다가오는 결제일 */}
           <Card>
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-900">📅 다가오는 결제일</h2>
+              <h2 className="text-xl font-bold text-gray-900">다가오는 결제일</h2>
               <Button
                 variant="ghost"
                 size="sm"
@@ -288,7 +288,7 @@ const Dashboard = () => {
               <EmptyState
                 title="다가오는 결제가 없어요"
                 description="7일 이내 결제 예정인 구독이 없습니다"
-                icon="✅"
+                icon=""
               />
             )}
           </Card>
@@ -296,7 +296,7 @@ const Dashboard = () => {
           {/* 최근 알림 */}
           <Card>
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-900">🔔 최근 알림</h2>
+              <h2 className="text-xl font-bold text-gray-900">최근 알림</h2>
               <Button
                 variant="ghost"
                 size="sm"
@@ -326,7 +326,7 @@ const Dashboard = () => {
               <EmptyState
                 title="새 알림이 없어요"
                 description="모든 알림을 확인했습니다"
-                icon="✨"
+                icon=""
               />
             )}
           </Card>
@@ -334,13 +334,12 @@ const Dashboard = () => {
 
         {/* 빠른 액션 */}
         <Card className="mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">⚡ 빠른 액션</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">빠른 액션</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <button
               onClick={() => navigate('/subscriptions')}
               className="p-6 border-2 border-gray-200 rounded-xl hover:border-primary-500 hover:bg-primary-50 transition text-left"
             >
-              <div className="text-3xl mb-2">➕</div>
               <div className="font-semibold text-gray-900">구독 추가하기</div>
               <div className="text-sm text-gray-600 mt-1">새로운 구독 서비스를 등록해요</div>
             </button>
@@ -348,7 +347,6 @@ const Dashboard = () => {
               onClick={() => navigate('/recommendation/quiz')}
               className="p-6 border-2 border-gray-200 rounded-xl hover:border-primary-500 hover:bg-primary-50 transition text-left"
             >
-              <div className="text-3xl mb-2">🤖</div>
               <div className="font-semibold text-gray-900">AI 추천 받기</div>
               <div className="text-sm text-gray-600 mt-1">맞춤형 서비스를 추천받아요</div>
             </button>
@@ -356,7 +354,6 @@ const Dashboard = () => {
               onClick={() => navigate('/optimization')}
               className="p-6 border-2 border-gray-200 rounded-xl hover:border-primary-500 hover:bg-primary-50 transition text-left"
             >
-              <div className="text-3xl mb-2">💡</div>
               <div className="font-semibold text-gray-900">최적화 제안</div>
               <div className="text-sm text-gray-600 mt-1">구독 비용을 절약해요</div>
             </button>
@@ -366,7 +363,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* 월별 지출 트렌드 */}
           <Card>
-            <h2 className="text-xl font-bold text-gray-900 mb-4">📈 월별 지출 트렌드</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">월별 지출 트렌드</h2>
             {dashboardData.monthlyTrend.length > 0 ? (
               <div className="space-y-4">
                 <div className="flex justify-between gap-2 h-48">
@@ -396,14 +393,14 @@ const Dashboard = () => {
               <EmptyState
                 title="데이터가 없어요"
                 description="구독을 추가하면 트렌드를 확인할 수 있어요"
-                icon="📊"
+                icon=""
               />
             )}
           </Card>
 
           {/* 카테고리별 구독 현황 */}
           <Card>
-            <h2 className="text-xl font-bold text-gray-900 mb-4">🏷️ 카테고리별 현황</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">카테고리별 현황</h2>
             {dashboardData.categoryExpenses.length > 0 ? (
               <div className="space-y-3">
                 {dashboardData.categoryExpenses.map((category, index) => (
@@ -428,7 +425,7 @@ const Dashboard = () => {
               <EmptyState
                 title="데이터가 없어요"
                 description="구독을 추가하면 카테고리별 현황을 확인할 수 있어요"
-                icon="📦"
+                icon=""
               />
             )}
           </Card>

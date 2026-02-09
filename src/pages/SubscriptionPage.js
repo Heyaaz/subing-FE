@@ -5,6 +5,32 @@ import { serviceService } from '../services/serviceService';
 import { Button, Card, Alert, EmptyState, Select, ConfirmModal, Toast } from '../components/common';
 import Loading from '../components/Loading';
 import { SERVICE_CATEGORIES } from '../constants/serviceCategories';
+import { getServiceIconUrl, getServiceColor } from '../utils/serviceIcons';
+
+const ServiceIcon = ({ serviceName, iconUrl }) => {
+  const [imgError, setImgError] = useState(false);
+  const resolvedUrl = getServiceIconUrl(serviceName, iconUrl);
+
+  if (resolvedUrl && !imgError) {
+    return (
+      <img
+        src={resolvedUrl}
+        alt=""
+        className="w-10 h-10 rounded-lg object-contain shrink-0 mt-0.5"
+        onError={() => setImgError(true)}
+      />
+    );
+  }
+
+  return (
+    <div
+      className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-lg shrink-0 mt-0.5"
+      style={{ backgroundColor: getServiceColor(serviceName) }}
+    >
+      {(serviceName || '?').charAt(0)}
+    </div>
+  );
+};
 
 const SubscriptionPage = () => {
   const [subscriptions, setSubscriptions] = useState([]);
@@ -408,13 +434,16 @@ const SubscriptionPage = () => {
           {subscriptions.map((subscription) => (
             <Card key={subscription.id} hover>
               <div className="flex justify-between items-start mb-4">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                    {subscription.serviceName || '서비스명'}
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    {subscription.planName}
-                  </p>
+                <div className="flex items-start gap-3 flex-1">
+                  <ServiceIcon serviceName={subscription.serviceName} iconUrl={subscription.serviceIcon} />
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                      {subscription.serviceName || '서비스명'}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      {subscription.planName}
+                    </p>
+                  </div>
                 </div>
 
                 {/* 활성/비활성 토글 */}

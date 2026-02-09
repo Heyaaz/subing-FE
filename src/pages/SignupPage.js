@@ -86,7 +86,7 @@ const SignupPage = () => {
         name: formData.name,
         password: formData.password
       });
-      navigate('/login');
+      navigate('/recommendation/quiz');
     } catch (error) {
       console.error('Signup error:', error);
     }

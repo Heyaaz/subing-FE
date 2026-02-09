@@ -446,7 +446,7 @@ const StreamingRecommendationPage = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-3xl mx-auto">
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center">
-            <div className="text-4xl mb-4">🔄</div>
+            <div className="text-4xl mb-4"></div>
             <h2 className="text-xl font-bold text-yellow-900 mb-2">
               결과 처리 중 문제가 발생했어요
             </h2>
@@ -631,11 +631,11 @@ const StreamingRecommendationPage = () => {
 
                 {/* 장점 */}
                 <div className="mb-4">
-                  <h4 className="font-semibold text-gray-900 mb-2">👍 장점</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">장점</h4>
                   <ul className="space-y-2">
                     {rec.pros?.map((pro, i) => (
                       <li key={i} className="flex items-start">
-                        <span className="text-success-500 mr-2 mt-0.5">✅</span>
+                        <span className="text-success-500 mr-2 mt-0.5">•</span>
                         <span className="text-gray-700">{pro}</span>
                       </li>
                     ))}
@@ -644,11 +644,11 @@ const StreamingRecommendationPage = () => {
 
                 {/* 단점 */}
                 <div className="mb-4">
-                  <h4 className="font-semibold text-gray-900 mb-2">⚠️ 단점</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">단점</h4>
                   <ul className="space-y-2">
                     {rec.cons?.map((con, i) => (
                       <li key={i} className="flex items-start">
-                        <span className="text-error-500 mr-2 mt-0.5">❌</span>
+                        <span className="text-error-500 mr-2 mt-0.5">•</span>
                         <span className="text-gray-700">{con}</span>
                       </li>
                     ))}
@@ -659,7 +659,7 @@ const StreamingRecommendationPage = () => {
                 {rec.tip && (
                   <div className="bg-warning-50 border-l-4 border-warning-500 p-4 mb-4 rounded">
                     <p className="text-warning-900">
-                      <span className="font-semibold">💡 추천 팁:</span> {rec.tip}
+                      <span className="font-semibold">추천 팁:</span> {rec.tip}
                     </p>
                   </div>
                 )}
@@ -693,9 +693,9 @@ const StreamingRecommendationPage = () => {
                             disabled={feedbackStatus[index]?.loading || feedbackStatus[index]?.submitted}
                           >
                             {feedbackStatus[index]?.loading && feedbackStatus[index]?.type === 'like' ? (
-                              <span className="text-lg animate-pulse">⏳</span>
+                              <span className="text-lg animate-pulse">...</span>
                             ) : (
-                              <span className="text-lg">👍</span>
+                              <span className="text-lg">+</span>
                             )}
                             <span className="text-sm text-gray-700">좋아요</span>
                           </button>
@@ -709,9 +709,9 @@ const StreamingRecommendationPage = () => {
                             disabled={feedbackStatus[index]?.loading || feedbackStatus[index]?.submitted}
                           >
                             {feedbackStatus[index]?.loading && feedbackStatus[index]?.type === 'dislike' ? (
-                              <span className="text-lg animate-pulse">⏳</span>
+                              <span className="text-lg animate-pulse">...</span>
                             ) : (
-                              <span className="text-lg">👎</span>
+                              <span className="text-lg">-</span>
                             )}
                             <span className="text-sm text-gray-700">별로예요</span>
                           </button>
@@ -726,7 +726,7 @@ const StreamingRecommendationPage = () => {
                           ? 'bg-success-100 text-success-800 border border-success-200'
                           : 'bg-error-100 text-error-800 border border-error-200'
                       }`}>
-                        {feedbackStatus[index]?.type === 'like' ? '👍' : '👎'}
+                        {feedbackStatus[index]?.type === 'like' ? '+' : '-'}
                         {feedbackStatus[index]?.type === 'like' ? '도움됨' : '별로'}
                       </span>
                     </div>

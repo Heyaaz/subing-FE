@@ -38,13 +38,22 @@ const SERVICE_DOMAIN_MAP = {
 
   // AI
   'ChatGPT': 'chat.openai.com',
+  '챗GPT': 'chat.openai.com',
+  '챗지피티': 'chat.openai.com',
   '클로드': 'claude.ai',
   'Claude': 'claude.ai',
   'Midjourney': 'midjourney.com',
+  '미드저니': 'midjourney.com',
   'Copilot': 'github.com',
+  '코파일럿': 'github.com',
   'GitHub Copilot': 'github.com',
+  '깃허브 코파일럿': 'github.com',
   'Notion AI': 'notion.so',
+  '노션 AI': 'notion.so',
   'Perplexity': 'perplexity.ai',
+  '퍼플렉시티': 'perplexity.ai',
+  'Cursor': 'cursor.com',
+  '커서': 'cursor.com',
 
   // 클라우드/생산성
   'Notion': 'notion.so',
@@ -52,15 +61,23 @@ const SERVICE_DOMAIN_MAP = {
   'Slack': 'slack.com',
   '슬랙': 'slack.com',
   'Google Workspace': 'workspace.google.com',
+  '구글 워크스페이스': 'workspace.google.com',
   'Microsoft 365': 'microsoft.com',
+  '마이크로소프트 365': 'microsoft.com',
   'Dropbox': 'dropbox.com',
+  '드롭박스': 'dropbox.com',
   'iCloud': 'icloud.com',
+  '아이클라우드': 'icloud.com',
   'Google One': 'one.google.com',
+  '구글 원': 'one.google.com',
   'GitHub': 'github.com',
+  '깃허브': 'github.com',
   'Figma': 'figma.com',
   '피그마': 'figma.com',
   'Canva': 'canva.com',
+  '캔바': 'canva.com',
   'Adobe': 'adobe.com',
+  '어도비': 'adobe.com',
 
   // 생활/배달
   '네이버플러스 멤버십': 'naver.com',
@@ -74,11 +91,27 @@ const SERVICE_DOMAIN_MAP = {
   '마켓컬리': 'kurly.com',
   '컬리': 'kurly.com',
 
+  // 운동/헬스
+  '나이키 런 클럽': 'nike.com',
+  'Nike Run Club': 'nike.com',
+  '킵': 'keep.com',
+  'Keep': 'keep.com',
+
   // 뉴스/독서
   '밀리의서재': 'millie.co.kr',
   '리디': 'ridibooks.com',
   '리디북스': 'ridibooks.com',
   '예스24': 'yes24.com',
+
+  // 교육
+  '클래스101': 'class101.net',
+  'Class101': 'class101.net',
+  '듀오링고': 'duolingo.com',
+  'Duolingo': 'duolingo.com',
+  'Udemy': 'udemy.com',
+  '유데미': 'udemy.com',
+  'Coursera': 'coursera.org',
+  '코세라': 'coursera.org',
 };
 
 /**

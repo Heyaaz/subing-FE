@@ -57,6 +57,7 @@ const SubscriptionPage = () => {
     billingCycle: 'MONTHLY',
     billingDate: '',
     startMonth: '',
+    endMonth: '',
     notes: ''
   });
   const [serviceSearchQuery, setServiceSearchQuery] = useState('');
@@ -148,6 +149,8 @@ const SubscriptionPage = () => {
   );
   const startYear = formData.startMonth ? formData.startMonth.slice(0, 4) : '';
   const startMonthNum = formData.startMonth ? formData.startMonth.slice(5, 7) : '';
+  const endYear = formData.endMonth ? formData.endMonth.slice(0, 4) : '';
+  const endMonthNum = formData.endMonth ? formData.endMonth.slice(5, 7) : '';
   const currentYear = new Date().getFullYear();
   const yearOptions = [{ value: '', label: '선택' }, ...Array.from({ length: 10 }, (_, i) => currentYear - 9 + i).map(y => ({ value: String(y), label: `${y}년` }))];
   const monthOptions = [{ value: '', label: '선택' }, ...Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1).padStart(2, '0'), label: `${i + 1}월` }))];
@@ -158,6 +161,14 @@ const SubscriptionPage = () => {
   const handleStartMonthChange = (e) => {
     const m = e.target.value;
     setFormData(prev => ({ ...prev, startMonth: m ? `${prev.startMonth?.slice(0, 4) || currentYear}-${m}` : (prev.startMonth?.slice(0, 4) ? `${prev.startMonth.slice(0, 4)}-01` : '') }));
+  };
+  const handleEndYearChange = (e) => {
+    const y = e.target.value;
+    setFormData(prev => ({ ...prev, endMonth: y ? `${y}-${prev.endMonth?.slice(5, 7) || '01'}` : '' }));
+  };
+  const handleEndMonthChange = (e) => {
+    const m = e.target.value;
+    setFormData(prev => ({ ...prev, endMonth: m ? `${prev.endMonth?.slice(0, 4) || currentYear}-${m}` : (prev.endMonth?.slice(0, 4) ? `${prev.endMonth.slice(0, 4)}-01` : '') }));
   };
   const selectedServiceName = formData.serviceId
     ? (services.find(s => String(s.id) === String(formData.serviceId))?.name || services.find(s => String(s.id) === String(formData.serviceId))?.serviceName || '')
@@ -187,7 +198,8 @@ const SubscriptionPage = () => {
         monthlyPrice: parseInt(formData.monthlyPrice, 10),
         currency: formData.currency || 'KRW',
         billingDate: billingDateNum,
-        startedAt: formData.startMonth
+        startedAt: formData.startMonth,
+        endedAt: formData.endMonth || null
       };
       await subscriptionService.createSubscription(payload);
       setShowAddForm(false);
@@ -199,6 +211,7 @@ const SubscriptionPage = () => {
         billingCycle: 'MONTHLY',
         billingDate: '',
         startMonth: '',
+        endMonth: '',
         notes: ''
       });
       setServiceSearchQuery('');
@@ -260,6 +273,8 @@ const SubscriptionPage = () => {
     setEditingSubscription(subscription);
     const startedAt = subscription.startedAt;
     const startMonth = startedAt ? String(startedAt).slice(0, 7) : '';
+    const endedAt = subscription.endedAt;
+    const endMonth = endedAt ? String(endedAt).slice(0, 7) : '';
     setFormData({
       serviceId: subscription.serviceId || subscription.service?.id || '',
       planName: subscription.planName || '',
@@ -268,6 +283,7 @@ const SubscriptionPage = () => {
       billingCycle: subscription.billingCycle || 'MONTHLY',
       billingDate: subscription.billingDate || '',
       startMonth,
+      endMonth,
       notes: subscription.notes || ''
     });
     setShowEditForm(true);
@@ -288,7 +304,8 @@ const SubscriptionPage = () => {
         monthlyPrice: parseInt(formData.monthlyPrice, 10),
         currency: formData.currency || 'KRW',
         billingDate: parseInt(formData.billingDate, 10),
-        startedAt: formData.startMonth
+        startedAt: formData.startMonth,
+        endedAt: formData.endMonth || null
       };
       if (payload.serviceId == null) {
         setError('서비스 정보를 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해주세요.');
@@ -305,6 +322,7 @@ const SubscriptionPage = () => {
         billingCycle: 'MONTHLY',
         billingDate: '',
         startMonth: '',
+        endMonth: '',
         notes: ''
       });
       loadSubscriptions();
@@ -325,6 +343,7 @@ const SubscriptionPage = () => {
       billingCycle: 'MONTHLY',
       billingDate: '',
       startMonth: '',
+      endMonth: '',
       notes: ''
     });
   };
@@ -338,6 +357,7 @@ const SubscriptionPage = () => {
       billingCycle: 'MONTHLY',
       billingDate: '',
       startMonth: '',
+      endMonth: '',
       notes: ''
     });
     setServiceSearchQuery('');
@@ -477,6 +497,11 @@ const SubscriptionPage = () => {
                 {subscription.startedAt && (
                   <p className="text-sm text-gray-600">
                     <span className="font-medium">시작월:</span> {String(subscription.startedAt).slice(0, 7).replace(/-/, '.')}
+                  </p>
+                )}
+                {subscription.endedAt && (
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">종료월:</span> {String(subscription.endedAt).slice(0, 7).replace(/-/, '.')}
                   </p>
                 )}
                 {subscription.notes && (
@@ -675,6 +700,31 @@ const SubscriptionPage = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                    구독 종료월 <span className="text-gray-400 font-normal">(선택사항)</span>
+                  </label>
+                  <p className="text-xs text-gray-500 mb-2">구독을 종료한 년/월을 선택하세요</p>
+                  <div className="flex gap-2">
+                    <Select
+                      name="endYear"
+                      value={endYear}
+                      onChange={handleEndYearChange}
+                      options={yearOptions}
+                      placeholder="년도"
+                      className="flex-1"
+                    />
+                    <Select
+                      name="endMonthNum"
+                      value={endMonthNum}
+                      onChange={handleEndMonthChange}
+                      options={monthOptions}
+                      placeholder="월"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     메모
                   </label>
                   <textarea
@@ -816,6 +866,31 @@ const SubscriptionPage = () => {
                       name="startMonthNum"
                       value={startMonthNum}
                       onChange={handleStartMonthChange}
+                      options={monthOptions}
+                      placeholder="월"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    구독 종료월 <span className="text-gray-400 font-normal">(선택사항)</span>
+                  </label>
+                  <p className="text-xs text-gray-500 mb-2">구독을 종료한 년/월을 선택하세요</p>
+                  <div className="flex gap-2">
+                    <Select
+                      name="endYear"
+                      value={endYear}
+                      onChange={handleEndYearChange}
+                      options={yearOptions}
+                      placeholder="년도"
+                      className="flex-1"
+                    />
+                    <Select
+                      name="endMonthNum"
+                      value={endMonthNum}
+                      onChange={handleEndMonthChange}
                       options={monthOptions}
                       placeholder="월"
                       className="flex-1"

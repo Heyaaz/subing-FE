@@ -98,7 +98,7 @@ const RecommendationResultPage = () => {
 
               {/* 추천 이유 */}
               <div className="bg-primary-50 border-l-4 border-primary-500 p-4 mb-4 rounded">
-                <h4 className="font-semibold text-primary-900 mb-2">✨ 추천 이유</h4>
+                <h4 className="font-semibold text-primary-900 mb-2">추천 이유</h4>
                 <p className="text-primary-800">{rec.mainReason}</p>
               </div>
 
@@ -152,13 +152,13 @@ const RecommendationResultPage = () => {
         {/* 전체 요약 */}
         {recommendations.summary && (
           <Card className="bg-gray-50 mb-8">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">📝 전체 요약</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-4">전체 요약</h3>
             <p className="text-gray-700 leading-relaxed">{recommendations.summary}</p>
 
             {recommendations.alternatives && (
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <p className="text-gray-600 text-sm">
-                  <span className="font-semibold">💭 대안:</span> {recommendations.alternatives}
+                  <span className="font-semibold">대안:</span> {recommendations.alternatives}
                 </p>
               </div>
             )}

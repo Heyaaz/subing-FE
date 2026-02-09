@@ -3,6 +3,32 @@ import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { recommendationService } from '../services/recommendationService';
 import { useAuth } from '../context/AuthContext';
 import { Button, Card, Alert } from '../components/common';
+import { getServiceIconUrl, getServiceColor } from '../utils/serviceIcons';
+
+const ServiceIcon = ({ serviceName }) => {
+  const [imgError, setImgError] = useState(false);
+  const resolvedUrl = getServiceIconUrl(serviceName, null);
+
+  if (resolvedUrl && !imgError) {
+    return (
+      <img
+        src={resolvedUrl}
+        alt=""
+        className="w-10 h-10 rounded-lg object-contain shrink-0"
+        onError={() => setImgError(true)}
+      />
+    );
+  }
+
+  return (
+    <div
+      className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-lg shrink-0"
+      style={{ backgroundColor: getServiceColor(serviceName) }}
+    >
+      {(serviceName || '?').charAt(0)}
+    </div>
+  );
+};
 
 const RecommendationResultPage = () => {
   const location = useLocation();
@@ -56,9 +82,12 @@ const RecommendationResultPage = () => {
           {recommendations.recommendations?.map((rec, index) => (
             <Card key={index}>
               <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900">{rec.serviceName}</h3>
-                  <p className="text-gray-600 mt-1">추천 점수: <span className="font-semibold text-primary-600">{rec.score}/100</span></p>
+                <div className="flex items-start gap-3">
+                  <ServiceIcon serviceName={rec.serviceName} />
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900">{rec.serviceName}</h3>
+                    <p className="text-gray-600 mt-1">추천 점수: <span className="font-semibold text-primary-600">{rec.score}/100</span></p>
+                  </div>
                 </div>
                 <div className="text-right">
                   <span className="inline-block bg-primary-500 text-white rounded-full w-10 h-10 flex items-center justify-center text-xl font-bold">

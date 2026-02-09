@@ -4,6 +4,32 @@ import { optimizationService } from '../services/optimizationService';
 import { useAuth } from '../context/AuthContext';
 import { Card, Badge, Alert, Button } from '../components/common';
 import Loading from '../components/Loading';
+import { getServiceIconUrl, getServiceColor } from '../utils/serviceIcons';
+
+const ServiceIcon = ({ serviceName, iconUrl }) => {
+  const [imgError, setImgError] = useState(false);
+  const resolvedUrl = getServiceIconUrl(serviceName, iconUrl);
+
+  if (resolvedUrl && !imgError) {
+    return (
+      <img
+        src={resolvedUrl}
+        alt=""
+        className="w-8 h-8 rounded-lg object-contain shrink-0"
+        onError={() => setImgError(true)}
+      />
+    );
+  }
+
+  return (
+    <div
+      className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0"
+      style={{ backgroundColor: getServiceColor(serviceName) }}
+    >
+      {(serviceName || '?').charAt(0)}
+    </div>
+  );
+};
 // import TierLimitModal from '../components/TierLimitModal'; // 임시 숨김
 
 const OptimizationPage = () => {
@@ -81,7 +107,7 @@ const OptimizationPage = () => {
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <h2 className="text-2xl font-bold mb-2">
-                {hasSuggestions ? '💡 개선 기회를 찾았어요!' : '✅ 완벽하게 최적화되었어요!'}
+                {hasSuggestions ? '개선 기회를 찾았어요!' : '완벽하게 최적화되었어요!'}
               </h2>
               <p className="text-lg opacity-90">{suggestions.summary}</p>
             </div>
@@ -98,7 +124,7 @@ const OptimizationPage = () => {
         {suggestions.duplicateServices.length > 0 && (
           <div className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-              🔄 중복 서비스 ({suggestions.duplicateServices.length})
+              중복 서비스 ({suggestions.duplicateServices.length})
             </h2>
             <div className="space-y-4">
               {suggestions.duplicateServices.map((group, index) => (
@@ -122,7 +148,10 @@ const OptimizationPage = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {group.subscriptions.map((sub) => (
                         <div key={sub.id} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
-                          <span className="font-medium text-gray-900">{sub.serviceName}</span>
+                          <div className="flex items-center gap-2">
+                            <ServiceIcon serviceName={sub.serviceName} iconUrl={sub.serviceIcon} />
+                            <span className="font-medium text-gray-900">{sub.serviceName}</span>
+                          </div>
                           <span className="text-gray-600">{formatCurrency(sub.monthlyPrice)}</span>
                         </div>
                       ))}
@@ -149,7 +178,7 @@ const OptimizationPage = () => {
         {suggestions.cheaperAlternatives.length > 0 && (
           <div className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-              💰 저렴한 대안 ({suggestions.cheaperAlternatives.length})
+              저렴한 대안 ({suggestions.cheaperAlternatives.length})
             </h2>
             <div className="space-y-4">
               {suggestions.cheaperAlternatives.map((alternative, index) => (
@@ -240,7 +269,6 @@ const OptimizationPage = () => {
         {/* 제안이 없을 때 */}
         {!hasSuggestions && (
           <Card className="p-12 text-center">
-            <div className="text-6xl mb-4">🎉</div>
             <h3 className="text-2xl font-semibold text-gray-900 mb-2">
               완벽하게 최적화되었어요!
             </h3>

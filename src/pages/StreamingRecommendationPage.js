@@ -5,6 +5,32 @@ import { subscriptionService } from '../services/subscriptionService';
 import { serviceService } from '../services/serviceService';
 import { Button, Card, RecommendationSkeleton, Select, Toast } from '../components/common';
 import { useAuth } from '../context/AuthContext';
+import { getServiceIconUrl, getServiceColor } from '../utils/serviceIcons';
+
+const ServiceLogo = ({ serviceName, iconUrl }) => {
+  const [imgError, setImgError] = React.useState(false);
+  const resolvedUrl = getServiceIconUrl(serviceName, iconUrl);
+
+  if (resolvedUrl && !imgError) {
+    return (
+      <img
+        src={resolvedUrl}
+        alt=""
+        className="w-12 h-12 rounded-lg object-contain shrink-0 bg-white border border-gray-200"
+        onError={() => setImgError(true)}
+      />
+    );
+  }
+
+  return (
+    <div
+      className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-xl shrink-0"
+      style={{ backgroundColor: getServiceColor(serviceName) }}
+    >
+      {(serviceName || '?').charAt(0)}
+    </div>
+  );
+};
 
 const StreamingRecommendationPage = () => {
   const navigate = useNavigate();
@@ -542,17 +568,7 @@ const StreamingRecommendationPage = () => {
               <Card key={index}>
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
-                    {serviceInfo?.iconUrl && (
-                      <img
-                        src={serviceInfo.iconUrl}
-                        alt={rec.serviceName}
-                        className="w-12 h-12 rounded-lg object-contain bg-white border border-gray-200"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                        }}
-                      />
-                    )}
-
+                    <ServiceLogo serviceName={rec.serviceName} iconUrl={serviceInfo?.iconUrl} />
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="text-2xl font-bold text-gray-900">{rec.serviceName}</h3>
@@ -609,7 +625,7 @@ const StreamingRecommendationPage = () => {
 
                 {/* 추천 이유 */}
                 <div className="bg-primary-50 border-l-4 border-primary-500 p-4 mb-4 rounded">
-                  <h4 className="font-semibold text-primary-900 mb-2">✨ 추천 이유</h4>
+                  <h4 className="font-semibold text-primary-900 mb-2">추천 이유</h4>
                   <p className="text-primary-800">{rec.mainReason}</p>
                 </div>
 
@@ -755,13 +771,13 @@ const StreamingRecommendationPage = () => {
         {/* 전체 요약 */}
         {parsedResult?.summary && (
           <Card className="bg-gray-50 mb-8">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">📝 전체 요약</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-4">전체 요약</h3>
             <p className="text-gray-700 leading-relaxed">{parsedResult.summary}</p>
 
             {parsedResult.alternatives && (
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <p className="text-gray-600 text-sm">
-                  <span className="font-semibold">💭 대안:</span> {parsedResult.alternatives}
+                  <span className="font-semibold">대안:</span> {parsedResult.alternatives}
                 </p>
               </div>
             )}

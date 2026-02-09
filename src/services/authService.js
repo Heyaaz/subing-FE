@@ -37,6 +37,23 @@ export const authService = {
     }
   },
 
+  // Google 로그인
+  async googleLogin(code, redirectUri) {
+    try {
+      const response = await api.post('/users/login/google', { code, redirectUri });
+      const { data } = response.data;
+
+      if (data && data.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data));
+      }
+
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
   // 로그아웃
   logout() {
     localStorage.removeItem('token');

@@ -25,6 +25,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsersPage from './pages/admin/AdminUsersPage';
 import AdminServicesPage from './pages/admin/AdminServicesPage';
 import AdminPlansPage from './pages/admin/AdminPlansPage';
+import GoogleCallbackPage from './pages/GoogleCallbackPage';
 import Loading from './components/Loading';
 
 import PageTransition from './components/PageTransition';
@@ -85,6 +86,15 @@ function App() {
               element={
                 <PublicRoute>
                   <SignupPage />
+                </PublicRoute>
+              }
+            />
+
+            <Route
+              path="/login/google/callback"
+              element={
+                <PublicRoute>
+                  <GoogleCallbackPage />
                 </PublicRoute>
               }
             />

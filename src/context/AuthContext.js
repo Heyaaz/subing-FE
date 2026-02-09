@@ -55,16 +55,39 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // 회원가입 함수
+  // 회원가입 함수 (자동 로그인)
   const signup = async (userData) => {
     try {
       setLoading(true);
       setError(null);
 
       const response = await authService.signup(userData);
+      const user = response.data;
+
+      setUser(user);
       return response;
     } catch (error) {
       const errorMessage = error.data?.message || error.message || '회원가입에 실패했습니다.';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Google 로그인 함수
+  const googleLogin = async (code, redirectUri) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await authService.googleLogin(code, redirectUri);
+      const userData = response.data;
+
+      setUser(userData);
+      return response;
+    } catch (error) {
+      const errorMessage = error.data?.message || error.message || 'Google 로그인에 실패했습니다.';
       setError(errorMessage);
       throw error;
     } finally {
@@ -90,6 +113,7 @@ export const AuthProvider = ({ children }) => {
     error,
     login,
     signup,
+    googleLogin,
     logout,
     clearError,
     isAuthenticated: !!user

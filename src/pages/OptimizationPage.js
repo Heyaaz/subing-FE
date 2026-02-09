@@ -70,8 +70,8 @@ const OptimizationPage = () => {
 
   if (!suggestions) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
+      <div className="container mx-auto px-4 py-8 min-h-[60vh] flex items-center justify-center">
+        <div className="max-w-6xl mx-auto text-center">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">최적화 제안</h1>
             <p className="text-gray-600 mb-6">구독을 분석해서 비용을 절감할 수 있는 방법을 알려드려요</p>

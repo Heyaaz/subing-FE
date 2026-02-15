@@ -80,3 +80,34 @@ export const updatePlan = async (planId, data) => {
 export const deletePlan = async (planId) => {
   await api.delete(`/admin/plans/${planId}`);
 };
+
+// 최적화 정책 관리 API
+export const getOptimizationConfig = async () => {
+  const response = await api.get('/admin/optimization-config');
+  return response.data;
+};
+
+export const updateOptimizationConfig = async (overrides) => {
+  const response = await api.put('/admin/optimization-config', { overrides });
+  return response.data;
+};
+
+export const rollbackOptimizationConfig = async () => {
+  const response = await api.post('/admin/optimization-config/rollback');
+  return response.data;
+};
+
+export const rollbackOptimizationConfigByKey = async (configKey) => {
+  const response = await api.post(`/admin/optimization-config/rollback/${encodeURIComponent(configKey)}`);
+  return response.data;
+};
+
+export const getOptimizationConfigAudits = async ({ configKey, limit = 30 } = {}) => {
+  const response = await api.get('/admin/optimization-config/audits', {
+    params: {
+      configKey,
+      limit
+    }
+  });
+  return response.data;
+};

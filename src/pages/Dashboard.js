@@ -226,7 +226,7 @@ const Dashboard = () => {
             </Card>
           )}
 
-          {/* 절약 가능 금액 */}
+          {/* 순절감 예상 금액 */}
           {dashboardData.optimizationData?.totalPotentialSavings > 0 && (
             <Card
               className="cursor-pointer hover:shadow-md transition-shadow border-success-200"
@@ -234,7 +234,7 @@ const Dashboard = () => {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-success-600 mb-1">절약 가능</p>
+                  <p className="text-sm text-success-600 mb-1">순절감 예상</p>
                   <p className="text-3xl font-bold text-success-700">
                     {formatCurrency(dashboardData.optimizationData.totalPotentialSavings)}
                   </p>

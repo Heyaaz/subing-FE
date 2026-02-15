@@ -29,5 +29,15 @@ export const optimizationService = {
     } catch (error) {
       throw error.response?.data || error;
     }
+  },
+
+  async trackOptimizationEvent(userId, eventPayload) {
+    try {
+      const response = await api.post(`/optimization/events?userId=${userId}`, eventPayload);
+      return response.data;
+    } catch (error) {
+      console.error('Optimization event tracking error:', error);
+      // 이벤트 추적 실패는 사용자 흐름에 영향 주지 않음
+    }
   }
 };

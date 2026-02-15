@@ -25,6 +25,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsersPage from './pages/admin/AdminUsersPage';
 import AdminServicesPage from './pages/admin/AdminServicesPage';
 import AdminPlansPage from './pages/admin/AdminPlansPage';
+import AdminOptimizationConfigPage from './pages/admin/AdminOptimizationConfigPage';
 import GoogleCallbackPage from './pages/GoogleCallbackPage';
 import Loading from './components/Loading';
 
@@ -315,6 +316,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <AdminPlansPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin/optimization-config"
+              element={
+                <PrivateRoute>
+                  <AdminOptimizationConfigPage />
                 </PrivateRoute>
               }
             />

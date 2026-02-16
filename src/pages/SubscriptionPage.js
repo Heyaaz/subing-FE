@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { subscriptionService } from '../services/subscriptionService';
 import { serviceService } from '../services/serviceService';
@@ -71,8 +71,7 @@ const SubscriptionPage = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState(null);
 
-  useEffect(() => {
-    const loadSubscriptions = async () => {
+  const loadSubscriptions = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -90,22 +89,23 @@ const SubscriptionPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, filters]);
 
+  useEffect(() => {
     const loadServices = async () => {
-    try {
-      const response = await serviceService.getAllServices();
-      setServices(response.data || []);
-    } catch (error) {
-      console.error('Load services error:', error);
-    }
-  };
+      try {
+        const response = await serviceService.getAllServices();
+        setServices(response.data || []);
+      } catch (error) {
+        console.error('Load services error:', error);
+      }
+    };
 
     if (user) {
       loadSubscriptions();
       loadServices();
     }
-  }, [user, filters]);
+  }, [user, loadSubscriptions]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

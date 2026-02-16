@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllServices, createService, updateService, deleteService } from '../../services/adminService';
 import { Button, Select } from '../../components/common';
@@ -20,8 +20,7 @@ const AdminServicesPage = () => {
     isActive: true,
   });
 
-  useEffect(() => {
-    const fetchServices = async () => {
+  const fetchServices = useCallback(async () => {
     try {
       const data = await getAllServices();
       setServices(data);
@@ -34,10 +33,11 @@ const AdminServicesPage = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-    fetchServices();
   }, [navigate]);
+
+  useEffect(() => {
+    fetchServices();
+  }, [fetchServices]);
 
   const handleCreate = () => {
     setEditingService(null);

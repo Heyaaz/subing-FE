@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllUsers, updateUser, deleteUser } from '../../services/adminService';
 import { Button, Badge, Select } from '../../components/common';
@@ -11,8 +11,7 @@ const AdminUsersPage = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [formData, setFormData] = useState({ tier: '', role: '' });
 
-  useEffect(() => {
-    const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       const data = await getAllUsers();
       setUsers(data);
@@ -25,10 +24,11 @@ const AdminUsersPage = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-    fetchUsers();
   }, [navigate]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const handleEdit = (user) => {
     setEditingUser(user);

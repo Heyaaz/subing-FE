@@ -1,0 +1,56 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          # CRA 경고를 점진적으로 정리하기 전까지 CI 경고로 인한 빌드 실패 방지
+          CI: "false"
+          REACT_APP_API_URL: https://placeholder.railway.app
+          REACT_APP_WS_URL: https://placeholder.railway.app
+
+      - name: Discord notification (failure)
+        if: ${{ failure() && secrets.DISCORD_WEBHOOK != '' }}
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          title: "FE CI 실패 - ${{ github.ref_name }}"
+          description: |
+            커밋: ${{ github.event.head_commit.message }}
+            SHA: ${{ github.sha }}
+          color: 0xff0000
+          status: ${{ job.status }}
+
+      - name: Discord notification (deploy)
+        if: ${{ success() && github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.DISCORD_WEBHOOK != '' }}
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          title: "FE 배포 시작"
+          description: |
+            커밋: ${{ github.event.head_commit.message }}
+            SHA: ${{ github.sha }}
+          color: 0x00ff00
+          status: ${{ job.status }}

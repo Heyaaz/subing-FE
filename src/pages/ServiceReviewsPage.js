@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getReviewsByService, getServiceRating, deleteReview, checkUserReviewed } from '../services/reviewService';
 import { serviceService } from '../services/serviceService';
@@ -19,8 +19,7 @@ const ServiceReviewsPage = () => {
   const [hasReviewed, setHasReviewed] = useState(false);
   const currentUserId = parseInt(localStorage.getItem('userId'));
 
-  useEffect(() => {
-    const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [serviceData, reviewsData, ratingData, hasReviewedData] = await Promise.all([
         serviceService.getServiceById(serviceId),
@@ -39,10 +38,11 @@ const ServiceReviewsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-    fetchData();
   }, [serviceId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleWriteReview = () => {
     setEditingReview(null);

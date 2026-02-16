@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllPlans, getAllServices, createPlan, updatePlan, deletePlan } from '../../services/adminService';
 import { Button, Badge, Select } from '../../components/common';
@@ -20,8 +20,7 @@ const AdminPlansPage = () => {
     isPopular: false,
   });
 
-  useEffect(() => {
-    const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [plansData, servicesData] = await Promise.all([
         getAllPlans(),
@@ -38,10 +37,11 @@ const AdminPlansPage = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-    fetchData();
   }, [navigate]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleCreate = () => {
     setEditingPlan(null);

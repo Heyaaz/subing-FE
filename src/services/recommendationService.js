@@ -56,7 +56,7 @@ export const recommendationService = {
 
   // AI 추천 스트리밍 (실시간 타이핑 효과)
   async getAIRecommendationsStream(userId, quizData, onChunk, onComplete, onError, signal, onResult) {
-    const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api/v1';
+    const API_BASE_URL = (process.env.REACT_APP_API_URL || 'http://localhost:8080') + '/api/v1';
     const token = localStorage.getItem('token');
 
     try {

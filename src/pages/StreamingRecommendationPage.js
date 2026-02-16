@@ -45,7 +45,6 @@ const StreamingRecommendationPage = () => {
 
   // 서비스 정보 조회 상태
   const [servicesInfo, setServicesInfo] = useState({});
-  const [loadingServices, setLoadingServices] = useState(false);
 
   // 피드백 상태 관리
   // { [index]: { type: 'like' | 'dislike', loading: boolean, submitted: boolean } }
@@ -186,7 +185,6 @@ const StreamingRecommendationPage = () => {
   useEffect(() => {
     if (parsedResult?.recommendations) {
       const fetchServicesInfo = async () => {
-        setLoadingServices(true);
         const info = {};
         for (const rec of parsedResult.recommendations) {
           if (rec.serviceId) {
@@ -201,7 +199,6 @@ const StreamingRecommendationPage = () => {
           }
         }
         setServicesInfo(info);
-        setLoadingServices(false);
       };
       fetchServicesInfo();
     }

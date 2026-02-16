@@ -21,10 +21,7 @@ const AdminPlansPage = () => {
   });
 
   useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+    const fetchData = async () => {
     try {
       const [plansData, servicesData] = await Promise.all([
         getAllPlans(),
@@ -42,6 +39,9 @@ const AdminPlansPage = () => {
       setLoading(false);
     }
   };
+
+    fetchData();
+  }, [navigate]);
 
   const handleCreate = () => {
     setEditingPlan(null);

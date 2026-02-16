@@ -12,12 +12,7 @@ const RecommendationHistoryPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user?.id) {
-      fetchHistory();
-    }
-  }, [user?.id]);
-
-  const fetchHistory = async () => {
+    const fetchHistory = async () => {
     if (!user?.id) return;
     try {
       setLoading(true);
@@ -29,6 +24,11 @@ const RecommendationHistoryPage = () => {
       setLoading(false);
     }
   };
+
+    if (user?.id) {
+      fetchHistory();
+    }
+  }, [user?.id]);
 
   const viewRecommendation = (item) => {
     try {

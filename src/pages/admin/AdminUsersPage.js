@@ -12,10 +12,7 @@ const AdminUsersPage = () => {
   const [formData, setFormData] = useState({ tier: '', role: '' });
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
+    const fetchUsers = async () => {
     try {
       const data = await getAllUsers();
       setUsers(data);
@@ -29,6 +26,9 @@ const AdminUsersPage = () => {
       setLoading(false);
     }
   };
+
+    fetchUsers();
+  }, [navigate]);
 
   const handleEdit = (user) => {
     setEditingUser(user);

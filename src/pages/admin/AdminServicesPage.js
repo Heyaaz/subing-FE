@@ -21,10 +21,7 @@ const AdminServicesPage = () => {
   });
 
   useEffect(() => {
-    fetchServices();
-  }, []);
-
-  const fetchServices = async () => {
+    const fetchServices = async () => {
     try {
       const data = await getAllServices();
       setServices(data);
@@ -38,6 +35,9 @@ const AdminServicesPage = () => {
       setLoading(false);
     }
   };
+
+    fetchServices();
+  }, [navigate]);
 
   const handleCreate = () => {
     setEditingService(null);

@@ -15,26 +15,7 @@ function PreferenceResultPage() {
   const [toastMessage, setToastMessage] = useState('');
 
   useEffect(() => {
-    // 중복 요청 방지 (React StrictMode에서 useEffect 두 번 실행됨)
-    if (isSubmittingRef.current) {
-      return;
-    }
-
-    // location.state에서 answers 가져오기
-    const answers = location.state?.answers || [];
-
-    if (answers.length === 0) {
-      // 답변 데이터가 없으면 테스트 페이지로 리다이렉트
-      navigate('/preferences/test');
-      return;
-    }
-
-    // 답변 제출 및 결과 받기
-    isSubmittingRef.current = true;
-    submitAnswers(answers);
-  }, [location, navigate]);
-
-  const submitAnswers = async (answers) => {
+    const submitAnswers = async (answers) => {
     try {
       const user = authService.getCurrentUser();
       if (!user || !user.id) {
@@ -57,6 +38,25 @@ function PreferenceResultPage() {
       isSubmittingRef.current = false;
     }
   };
+
+    // 중복 요청 방지 (React StrictMode에서 useEffect 두 번 실행됨)
+    if (isSubmittingRef.current) {
+      return;
+    }
+
+    // location.state에서 answers 가져오기
+    const answers = location.state?.answers || [];
+
+    if (answers.length === 0) {
+      // 답변 데이터가 없으면 테스트 페이지로 리다이렉트
+      navigate('/preferences/test');
+      return;
+    }
+
+    // 답변 제출 및 결과 받기
+    isSubmittingRef.current = true;
+    submitAnswers(answers);
+  }, [location, navigate]);
 
   if (loading) {
     return (

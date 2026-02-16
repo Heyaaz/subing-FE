@@ -18,12 +18,7 @@ const StatisticsPage = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
 
   useEffect(() => {
-    if (user) {
-      loadStatistics();
-    }
-  }, [user, selectedYear, selectedMonth]);
-
-  const loadStatistics = async () => {
+    const loadStatistics = async () => {
     try {
       setLoading(true);
       const [monthlyResponse, analysisResponse, trendData] = await Promise.all([
@@ -45,6 +40,11 @@ const StatisticsPage = () => {
       setLoading(false);
     }
   };
+
+    if (user) {
+      loadStatistics();
+    }
+  }, [user, selectedYear, selectedMonth]);
 
   const formatCurrency = (amount) => {
     return amount?.toLocaleString() || '0';

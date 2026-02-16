@@ -9,10 +9,7 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchStatistics();
-  }, []);
-
-  const fetchStatistics = async () => {
+    const fetchStatistics = async () => {
     try {
       const data = await getAdminStatistics();
       setStatistics(data);
@@ -26,6 +23,9 @@ const AdminDashboard = () => {
       setLoading(false);
     }
   };
+
+    fetchStatistics();
+  }, [navigate]);
 
   if (loading) {
     return <Loading text="통계를 불러오고 있어요..." />;

@@ -10,12 +10,7 @@ const NotificationSettingsPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user?.id) {
-      fetchSettings();
-    }
-  }, [user?.id]);
-
-  const fetchSettings = async () => {
+    const fetchSettings = async () => {
     if (!user?.id) return;
     try {
       setLoading(true);
@@ -28,6 +23,11 @@ const NotificationSettingsPage = () => {
       setLoading(false);
     }
   };
+
+    if (user?.id) {
+      fetchSettings();
+    }
+  }, [user?.id]);
 
   const handleToggle = async (notificationType, currentValue) => {
     if (!user?.id) return;

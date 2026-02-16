@@ -72,13 +72,7 @@ const SubscriptionPage = () => {
   const [deleteTargetId, setDeleteTargetId] = useState(null);
 
   useEffect(() => {
-    if (user) {
-      loadSubscriptions();
-      loadServices();
-    }
-  }, [user, filters]);
-
-  const loadSubscriptions = async () => {
+    const loadSubscriptions = async () => {
     try {
       setLoading(true);
 
@@ -98,7 +92,7 @@ const SubscriptionPage = () => {
     }
   };
 
-  const loadServices = async () => {
+    const loadServices = async () => {
     try {
       const response = await serviceService.getAllServices();
       setServices(response.data || []);
@@ -106,6 +100,12 @@ const SubscriptionPage = () => {
       console.error('Load services error:', error);
     }
   };
+
+    if (user) {
+      loadSubscriptions();
+      loadServices();
+    }
+  }, [user, filters]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

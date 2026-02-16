@@ -20,10 +20,7 @@ const ServiceReviewsPage = () => {
   const currentUserId = parseInt(localStorage.getItem('userId'));
 
   useEffect(() => {
-    fetchData();
-  }, [serviceId]);
-
-  const fetchData = async () => {
+    const fetchData = async () => {
     try {
       const [serviceData, reviewsData, ratingData, hasReviewedData] = await Promise.all([
         serviceService.getServiceById(serviceId),
@@ -43,6 +40,9 @@ const ServiceReviewsPage = () => {
       setLoading(false);
     }
   };
+
+    fetchData();
+  }, [serviceId]);
 
   const handleWriteReview = () => {
     setEditingReview(null);

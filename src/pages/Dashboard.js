@@ -25,12 +25,7 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    if (user?.id) {
-      fetchDashboardData();
-    }
-  }, [user?.id]);
-
-  const fetchDashboardData = async () => {
+    const fetchDashboardData = async () => {
     if (!user?.id) return;
 
     try {
@@ -97,6 +92,11 @@ const Dashboard = () => {
       setLoading(false);
     }
   };
+
+    if (user?.id) {
+      fetchDashboardData();
+    }
+  }, [user?.id]);
 
   const formatCurrency = (amount) => {
     return amount?.toLocaleString('ko-KR') || '0';

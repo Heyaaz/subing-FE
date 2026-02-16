@@ -11,10 +11,7 @@ function PreferenceProfilePage() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   useEffect(() => {
-    loadProfile();
-  }, []);
-
-  const loadProfile = async () => {
+    const loadProfile = async () => {
     try {
       const user = authService.getCurrentUser();
       if (!user || !user.id) {
@@ -40,6 +37,9 @@ function PreferenceProfilePage() {
       setLoading(false);
     }
   };
+
+    loadProfile();
+  }, [navigate]);
 
   const handleRetakeTest = () => {
     setShowConfirmModal(true);

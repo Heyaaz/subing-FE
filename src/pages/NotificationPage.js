@@ -10,12 +10,7 @@ const NotificationPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user?.id) {
-      fetchNotifications();
-    }
-  }, [user?.id]);
-
-  const fetchNotifications = async () => {
+    const fetchNotifications = async () => {
     if (!user?.id) return;
     try {
       setLoading(true);
@@ -27,6 +22,11 @@ const NotificationPage = () => {
       setLoading(false);
     }
   };
+
+    if (user?.id) {
+      fetchNotifications();
+    }
+  }, [user?.id]);
 
   const handleMarkAsRead = async (notificationId) => {
     if (!user?.id) return;

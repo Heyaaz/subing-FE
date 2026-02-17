@@ -58,23 +58,26 @@ const Dashboard = () => {
         return paymentDate <= sevenDaysLater && paymentDate >= now;
       }) || [];
 
-      // 최근 6개월 트렌드
-      const trendMonths = [];
-      for (let i = 5; i >= 0; i--) {
-        const trendDate = new Date(year, month - 1 - i, 1);
-        const trendYear = trendDate.getFullYear();
-        const trendMonth = trendDate.getMonth() + 1;
-        try {
-          const data = await statisticsService.getMonthlyExpense(user.id, trendYear, trendMonth);
-          trendMonths.push({
-            year: trendYear,
-            month: trendMonth,
-            amount: data.totalAmount || 0
-          });
-        } catch (error) {
-          trendMonths.push({ year: trendYear, month: trendMonth, amount: 0 });
-        }
-      }
+      // 최근 6개월 트렌드 (직렬 요청 대신 병렬 요청)
+      const trendOffsets = [5, 4, 3, 2, 1, 0];
+      const trendMonths = await Promise.all(
+        trendOffsets.map(async (offset) => {
+          const trendDate = new Date(year, month - 1 - offset, 1);
+          const trendYear = trendDate.getFullYear();
+          const trendMonth = trendDate.getMonth() + 1;
+
+          try {
+            const data = await statisticsService.getMonthlyExpense(user.id, trendYear, trendMonth);
+            return {
+              year: trendYear,
+              month: trendMonth,
+              amount: data.totalAmount || 0
+            };
+          } catch (error) {
+            return { year: trendYear, month: trendMonth, amount: 0 };
+          }
+        })
+      );
 
       setDashboardData({
         monthlyExpense: monthlyExpense,

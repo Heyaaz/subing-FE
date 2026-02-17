@@ -1,35 +1,35 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import Header from './components/Header';
-import LoginPage from './pages/LoginPage';
-import SignupPage from './pages/SignupPage';
-import Dashboard from './pages/Dashboard';
-import SubscriptionPage from './pages/SubscriptionPage';
-import StatisticsPage from './pages/StatisticsPage';
-import ComparisonPage from './pages/ComparisonPage';
-import QuizPage from './pages/QuizPage';
-import RecommendationResultPage from './pages/RecommendationResultPage';
-import StreamingRecommendationPage from './pages/StreamingRecommendationPage';
-import RecommendationHistoryPage from './pages/RecommendationHistoryPage';
-import NotificationPage from './pages/NotificationPage';
-import NotificationSettingsPage from './pages/NotificationSettingsPage';
-import BudgetPage from './pages/BudgetPage';
-import OptimizationPage from './pages/OptimizationPage';
-// import TierPage from './pages/TierPage'; // 임시 숨김
-import ServiceReviewsPage from './pages/ServiceReviewsPage';
-import PreferenceTestPage from './pages/preferences/PreferenceTestPage';
-import PreferenceResultPage from './pages/preferences/PreferenceResultPage';
-import PreferenceProfilePage from './pages/preferences/PreferenceProfilePage';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import AdminUsersPage from './pages/admin/AdminUsersPage';
-import AdminServicesPage from './pages/admin/AdminServicesPage';
-import AdminPlansPage from './pages/admin/AdminPlansPage';
-import AdminOptimizationConfigPage from './pages/admin/AdminOptimizationConfigPage';
-import GoogleCallbackPage from './pages/GoogleCallbackPage';
 import Loading from './components/Loading';
 
-import PageTransition from './components/PageTransition';
+const Header = lazy(() => import('./components/Header'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const SignupPage = lazy(() => import('./pages/SignupPage'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const SubscriptionPage = lazy(() => import('./pages/SubscriptionPage'));
+const StatisticsPage = lazy(() => import('./pages/StatisticsPage'));
+const ComparisonPage = lazy(() => import('./pages/ComparisonPage'));
+const QuizPage = lazy(() => import('./pages/QuizPage'));
+const RecommendationResultPage = lazy(() => import('./pages/RecommendationResultPage'));
+const StreamingRecommendationPage = lazy(() => import('./pages/StreamingRecommendationPage'));
+const RecommendationHistoryPage = lazy(() => import('./pages/RecommendationHistoryPage'));
+const NotificationPage = lazy(() => import('./pages/NotificationPage'));
+const NotificationSettingsPage = lazy(() => import('./pages/NotificationSettingsPage'));
+const BudgetPage = lazy(() => import('./pages/BudgetPage'));
+const OptimizationPage = lazy(() => import('./pages/OptimizationPage'));
+// const TierPage = lazy(() => import('./pages/TierPage')); // 임시 숨김
+const ServiceReviewsPage = lazy(() => import('./pages/ServiceReviewsPage'));
+const PreferenceTestPage = lazy(() => import('./pages/preferences/PreferenceTestPage'));
+const PreferenceResultPage = lazy(() => import('./pages/preferences/PreferenceResultPage'));
+const PreferenceProfilePage = lazy(() => import('./pages/preferences/PreferenceProfilePage'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage'));
+const AdminServicesPage = lazy(() => import('./pages/admin/AdminServicesPage'));
+const AdminPlansPage = lazy(() => import('./pages/admin/AdminPlansPage'));
+const AdminOptimizationConfigPage = lazy(() => import('./pages/admin/AdminOptimizationConfigPage'));
+const GoogleCallbackPage = lazy(() => import('./pages/GoogleCallbackPage'));
+const PageTransition = lazy(() => import('./components/PageTransition'));
 
 // Private Route 컴포넌트
 const PrivateRoute = ({ children }) => {
@@ -72,265 +72,267 @@ function App() {
     <AuthProvider>
       <Router>
         <div className="min-h-screen bg-gray-50">
-          <Routes>
-            {/* Public Routes */}
-            <Route
-              path="/login"
-              element={
-                <PublicRoute>
-                  <LoginPage />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/signup"
-              element={
-                <PublicRoute>
-                  <SignupPage />
-                </PublicRoute>
-              }
-            />
+          <Suspense fallback={<Loading text="페이지를 불러오는 중..." />}>
+            <Routes>
+              {/* Public Routes */}
+              <Route
+                path="/login"
+                element={
+                  <PublicRoute>
+                    <LoginPage />
+                  </PublicRoute>
+                }
+              />
+              <Route
+                path="/signup"
+                element={
+                  <PublicRoute>
+                    <SignupPage />
+                  </PublicRoute>
+                }
+              />
 
-            <Route
-              path="/login/google/callback"
-              element={
-                <PublicRoute>
-                  <GoogleCallbackPage />
-                </PublicRoute>
-              }
-            />
+              <Route
+                path="/login/google/callback"
+                element={
+                  <PublicRoute>
+                    <GoogleCallbackPage />
+                  </PublicRoute>
+                }
+              />
 
-            {/* Private Routes with Header */}
-            <Route
-              path="/dashboard"
-              element={
-                <PrivateRoute>
-                  <div className="min-h-screen bg-gray-50">
-                    <Header />
-                    <Dashboard />
-                  </div>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/subscriptions"
-              element={
-                <PrivateRoute>
-                  <div className="min-h-screen bg-gray-50">
-                    <Header />
-                    <SubscriptionPage />
-                  </div>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/statistics"
-              element={
-                <PrivateRoute>
-                  <div className="min-h-screen bg-gray-50">
-                    <Header />
-                    <StatisticsPage />
-                  </div>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/comparison"
-              element={
-                <PrivateRoute>
-                  <div className="min-h-screen bg-gray-50">
-                    <Header />
-                    <ComparisonPage />
-                  </div>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/recommendation/quiz"
-              element={
-                <PrivateRoute>
-                  <div className="min-h-screen bg-gray-50">
-                    <Header />
-                    <QuizPage />
-                  </div>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/recommendation/streaming"
-              element={
-                <PrivateRoute>
-                  <div className="min-h-screen bg-gray-50">
-                    <Header />
-                    <StreamingRecommendationPage />
-                  </div>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/recommendation/result"
-              element={
-                <PrivateRoute>
-                  <div className="min-h-screen bg-gray-50">
-                    <Header />
-                    <RecommendationResultPage />
-                  </div>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/recommendation/history"
-              element={
-                <PrivateRoute>
-                  <div className="min-h-screen bg-gray-50">
-                    <Header />
-                    <RecommendationHistoryPage />
-                  </div>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/notifications"
-              element={
-                <PrivateRoute>
-                  <div className="min-h-screen bg-gray-50">
-                    <Header />
-                    <NotificationPage />
-                  </div>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/notification-settings"
-              element={
-                <PrivateRoute>
-                  <div className="min-h-screen bg-gray-50">
-                    <Header />
-                    <NotificationSettingsPage />
-                  </div>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/budget"
-              element={
-                <PrivateRoute>
-                  <div className="min-h-screen bg-gray-50">
-                    <Header />
-                    <BudgetPage />
-                  </div>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/optimization"
-              element={
-                <PrivateRoute>
-                  <div className="min-h-screen bg-gray-50">
-                    <Header />
-                    <OptimizationPage />
-                  </div>
-                </PrivateRoute>
-              }
-            />
-            {/* 티어 페이지 임시 숨김 */}
-            {/* <Route
-              path="/tier"
-              element={
-                <PrivateRoute>
-                  <div className="min-h-screen bg-gray-50">
-                    <Header />
-                    <TierPage />
-                  </div>
-                </PrivateRoute>
-              }
-            /> */}
-            <Route
-              path="/services/:serviceId/reviews"
-              element={
-                <PrivateRoute>
-                  <div className="min-h-screen bg-gray-50">
-                    <Header />
-                    <ServiceReviewsPage />
-                  </div>
-                </PrivateRoute>
-              }
-            />
+              {/* Private Routes with Header */}
+              <Route
+                path="/dashboard"
+                element={
+                  <PrivateRoute>
+                    <div className="min-h-screen bg-gray-50">
+                      <Header />
+                      <Dashboard />
+                    </div>
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/subscriptions"
+                element={
+                  <PrivateRoute>
+                    <div className="min-h-screen bg-gray-50">
+                      <Header />
+                      <SubscriptionPage />
+                    </div>
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/statistics"
+                element={
+                  <PrivateRoute>
+                    <div className="min-h-screen bg-gray-50">
+                      <Header />
+                      <StatisticsPage />
+                    </div>
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/comparison"
+                element={
+                  <PrivateRoute>
+                    <div className="min-h-screen bg-gray-50">
+                      <Header />
+                      <ComparisonPage />
+                    </div>
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/recommendation/quiz"
+                element={
+                  <PrivateRoute>
+                    <div className="min-h-screen bg-gray-50">
+                      <Header />
+                      <QuizPage />
+                    </div>
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/recommendation/streaming"
+                element={
+                  <PrivateRoute>
+                    <div className="min-h-screen bg-gray-50">
+                      <Header />
+                      <StreamingRecommendationPage />
+                    </div>
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/recommendation/result"
+                element={
+                  <PrivateRoute>
+                    <div className="min-h-screen bg-gray-50">
+                      <Header />
+                      <RecommendationResultPage />
+                    </div>
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/recommendation/history"
+                element={
+                  <PrivateRoute>
+                    <div className="min-h-screen bg-gray-50">
+                      <Header />
+                      <RecommendationHistoryPage />
+                    </div>
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/notifications"
+                element={
+                  <PrivateRoute>
+                    <div className="min-h-screen bg-gray-50">
+                      <Header />
+                      <NotificationPage />
+                    </div>
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/notification-settings"
+                element={
+                  <PrivateRoute>
+                    <div className="min-h-screen bg-gray-50">
+                      <Header />
+                      <NotificationSettingsPage />
+                    </div>
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/budget"
+                element={
+                  <PrivateRoute>
+                    <div className="min-h-screen bg-gray-50">
+                      <Header />
+                      <BudgetPage />
+                    </div>
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/optimization"
+                element={
+                  <PrivateRoute>
+                    <div className="min-h-screen bg-gray-50">
+                      <Header />
+                      <OptimizationPage />
+                    </div>
+                  </PrivateRoute>
+                }
+              />
+              {/* 티어 페이지 임시 숨김 */}
+              {/* <Route
+                path="/tier"
+                element={
+                  <PrivateRoute>
+                    <div className="min-h-screen bg-gray-50">
+                      <Header />
+                      <TierPage />
+                    </div>
+                  </PrivateRoute>
+                }
+              /> */}
+              <Route
+                path="/services/:serviceId/reviews"
+                element={
+                  <PrivateRoute>
+                    <div className="min-h-screen bg-gray-50">
+                      <Header />
+                      <ServiceReviewsPage />
+                    </div>
+                  </PrivateRoute>
+                }
+              />
 
-            {/* Preference Test Routes */}
-            <Route
-              path="/preferences/test"
-              element={
-                <PrivateRoute>
-                  <PreferenceTestPage />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/preferences/result"
-              element={
-                <PrivateRoute>
-                  <PreferenceResultPage />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/preferences/profile"
-              element={
-                <PrivateRoute>
-                  <div className="min-h-screen bg-gray-50">
-                    <Header />
-                    <PreferenceProfilePage />
-                  </div>
-                </PrivateRoute>
-              }
-            />
+              {/* Preference Test Routes */}
+              <Route
+                path="/preferences/test"
+                element={
+                  <PrivateRoute>
+                    <PreferenceTestPage />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/preferences/result"
+                element={
+                  <PrivateRoute>
+                    <PreferenceResultPage />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/preferences/profile"
+                element={
+                  <PrivateRoute>
+                    <div className="min-h-screen bg-gray-50">
+                      <Header />
+                      <PreferenceProfilePage />
+                    </div>
+                  </PrivateRoute>
+                }
+              />
 
-            {/* Admin Routes */}
-            <Route
-              path="/admin"
-              element={
-                <PrivateRoute>
-                  <AdminDashboard />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/admin/users"
-              element={
-                <PrivateRoute>
-                  <AdminUsersPage />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/admin/services"
-              element={
-                <PrivateRoute>
-                  <AdminServicesPage />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/admin/plans"
-              element={
-                <PrivateRoute>
-                  <AdminPlansPage />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/admin/optimization-config"
-              element={
-                <PrivateRoute>
-                  <AdminOptimizationConfigPage />
-                </PrivateRoute>
-              }
-            />
+              {/* Admin Routes */}
+              <Route
+                path="/admin"
+                element={
+                  <PrivateRoute>
+                    <AdminDashboard />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <PrivateRoute>
+                    <AdminUsersPage />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/admin/services"
+                element={
+                  <PrivateRoute>
+                    <AdminServicesPage />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/admin/plans"
+                element={
+                  <PrivateRoute>
+                    <AdminPlansPage />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/admin/optimization-config"
+                element={
+                  <PrivateRoute>
+                    <AdminOptimizationConfigPage />
+                  </PrivateRoute>
+                }
+              />
 
-            {/* Default redirect */}
-            <Route path="/" element={<Navigate to="/dashboard" />} />
-          </Routes>
+              {/* Default redirect */}
+              <Route path="/" element={<Navigate to="/dashboard" />} />
+            </Routes>
+          </Suspense>
         </div>
       </Router>
     </AuthProvider>

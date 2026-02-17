@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import useWebSocket from '../hooks/useWebSocket';
+import { notificationService } from '../services/notificationService';
 
 const Header = () => {
   const { user, logout, isAuthenticated } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { unreadCount } = useWebSocket();
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const handleLogout = () => {
     logout();
@@ -19,6 +19,22 @@ const Header = () => {
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
+
+  // 읽지 않은 알림 개수 조회
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const fetchUnreadCount = async () => {
+      try {
+        const count = await notificationService.getUnreadCount(user.id);
+        setUnreadCount(count);
+      } catch (error) {
+        // 실패해도 뱃지만 안 보이면 됨
+      }
+    };
+
+    fetchUnreadCount();
+  }, [user?.id, location.pathname]);
 
   const navigationItems = [
     { path: '/dashboard', label: '대시보드' },

@@ -34,19 +34,34 @@ const Dashboard = () => {
       const year = now.getFullYear();
       const month = now.getMonth() + 1;
 
-      // 병렬로 데이터 가져오기
+      // 모든 API를 한 번에 병렬 호출
+      const trendOffsets = [5, 4, 3, 2, 1, 0];
+      const trendPromises = trendOffsets.map(async (offset) => {
+        const trendDate = new Date(year, month - 1 - offset, 1);
+        const trendYear = trendDate.getFullYear();
+        const trendMonth = trendDate.getMonth() + 1;
+        try {
+          const data = await statisticsService.getMonthlyExpense(user.id, trendYear, trendMonth);
+          return { year: trendYear, month: trendMonth, amount: data.totalAmount || 0 };
+        } catch (error) {
+          return { year: trendYear, month: trendMonth, amount: 0 };
+        }
+      });
+
       const [
         monthlyExpense,
         allSubscriptions,
         budget,
         unreadNotifications,
-        optimizationData
+        optimizationData,
+        ...trendMonths
       ] = await Promise.all([
         statisticsService.getMonthlyExpense(user.id, year, month),
         subscriptionService.getSubscriptions(user.id, { isActive: true, sort: 'nextPaymentDate' }),
         budgetService.getCurrentMonthBudget(user.id).catch(() => null),
         notificationService.getUnreadNotifications(user.id).catch(() => []),
-        optimizationService.getOptimizationSuggestions(user.id).catch(() => null)
+        optimizationService.getOptimizationSuggestions(user.id).catch(() => null),
+        ...trendPromises
       ]);
 
       // 7일 이내 결제 예정 구독
@@ -57,27 +72,6 @@ const Dashboard = () => {
         const paymentDate = new Date(sub.nextBillingDate);
         return paymentDate <= sevenDaysLater && paymentDate >= now;
       }) || [];
-
-      // 최근 6개월 트렌드 (직렬 요청 대신 병렬 요청)
-      const trendOffsets = [5, 4, 3, 2, 1, 0];
-      const trendMonths = await Promise.all(
-        trendOffsets.map(async (offset) => {
-          const trendDate = new Date(year, month - 1 - offset, 1);
-          const trendYear = trendDate.getFullYear();
-          const trendMonth = trendDate.getMonth() + 1;
-
-          try {
-            const data = await statisticsService.getMonthlyExpense(user.id, trendYear, trendMonth);
-            return {
-              year: trendYear,
-              month: trendMonth,
-              amount: data.totalAmount || 0
-            };
-          } catch (error) {
-            return { year: trendYear, month: trendMonth, amount: 0 };
-          }
-        })
-      );
 
       setDashboardData({
         monthlyExpense: monthlyExpense,

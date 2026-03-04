@@ -548,7 +548,7 @@ const SubscriptionPage = () => {
         {/* 구독 추가 모달 */}
         {showAddForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl">
+            <div className="bg-white rounded-2xl p-8 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
               <h2 className="text-2xl font-bold mb-6 text-gray-900">구독 추가하기</h2>
               
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -762,7 +762,7 @@ const SubscriptionPage = () => {
         {/* 구독 수정 모달 */}
         {showEditForm && editingSubscription && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl">
+            <div className="bg-white rounded-2xl p-8 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
               <h2 className="text-2xl font-bold mb-6 text-gray-900">구독 수정하기</h2>
 
               <form onSubmit={handleUpdate} className="space-y-4">

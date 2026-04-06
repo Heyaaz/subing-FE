@@ -106,6 +106,65 @@ const ComparisonPage = () => {
     return plans.length > 1 ? plans[plans.length - 1] : null;
   };
 
+
+  const getPlanEntries = (services = []) => {
+    return services.flatMap((service) =>
+      getSortedPlans(service).map((plan) => ({
+        serviceName: service.name,
+        planName: plan.planName,
+        monthlyPrice: plan.monthlyPrice,
+      }))
+    );
+  };
+
+  const getCheapestPlanEntry = (services = []) => {
+    const planEntries = getPlanEntries(services);
+    return planEntries.length > 0
+      ? planEntries.reduce((cheapest, current) =>
+          current.monthlyPrice < cheapest.monthlyPrice ? current : cheapest
+        )
+      : null;
+  };
+
+  const getMostExpensivePlanEntry = (services = []) => {
+    const planEntries = getPlanEntries(services);
+    return planEntries.length > 0
+      ? planEntries.reduce((highest, current) =>
+          current.monthlyPrice > highest.monthlyPrice ? current : highest
+        )
+      : null;
+  };
+
+
+  const getMedianStartingPrice = (services = []) => {
+    const prices = services
+      .map((service) => getPrimaryPlan(service)?.monthlyPrice)
+      .filter((price) => price != null)
+      .sort((a, b) => a - b);
+
+    if (prices.length === 0) {
+      return null;
+    }
+
+    const mid = Math.floor(prices.length / 2);
+    if (prices.length % 2 === 0) {
+      return Math.round((prices[mid - 1] + prices[mid]) / 2);
+    }
+
+    return prices[mid];
+  };
+
+  const getPriceGap = (services = []) => {
+    const cheapest = getCheapestPlanEntry(services);
+    const highest = getMostExpensivePlanEntry(services);
+
+    if (!cheapest || !highest) {
+      return null;
+    }
+
+    return highest.monthlyPrice - cheapest.monthlyPrice;
+  };
+
   /** API: website, plans(monthlyPrice) → 가격 범위 문자열 */
   const getPriceRange = (service) => {
     const plans = service?.plans;
@@ -298,19 +357,62 @@ const ComparisonPage = () => {
             </table>
           </div>
 
-          {/* 요약 (API: summary 객체 minPrice, maxPrice, avgPrice, mostPopularService, bestValueService) */}
-          {comparisonResult.summary && (
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">비교 요약</h3>
-              <div className="text-sm text-gray-700 space-y-1">
-                <div>최저가: {comparisonResult.summary.minPrice != null ? `${comparisonResult.summary.minPrice.toLocaleString()}원` : '-'}</div>
-                <div>최고가: {comparisonResult.summary.maxPrice != null ? `${comparisonResult.summary.maxPrice.toLocaleString()}원` : '-'}</div>
-                <div>평균: {comparisonResult.summary.avgPrice != null ? `${comparisonResult.summary.avgPrice.toLocaleString()}원` : '-'}</div>
-                <div>인기: {comparisonResult.summary.mostPopularService ?? '-'}</div>
-                <div>가성비: {comparisonResult.summary.bestValueService ?? '-'}</div>
+          {(() => {
+            const services = comparisonResult.services || [];
+            const cheapestPlan = getCheapestPlanEntry(services);
+            const highestPlan = getMostExpensivePlanEntry(services);
+            const priceGap = getPriceGap(services);
+            const medianStartingPrice = getMedianStartingPrice(services);
+
+            if (!cheapestPlan && !highestPlan) {
+              return null;
+            }
+
+            return (
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                <h3 className="text-sm font-semibold text-gray-700 mb-4">비교 요약</h3>
+                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                  <div className="rounded-xl bg-white p-4 border border-gray-100">
+                    <div className="text-xs font-medium text-gray-500 mb-2">가장 저렴한 시작 플랜</div>
+                    {cheapestPlan ? (
+                      <>
+                        <div className="font-semibold text-gray-900">{cheapestPlan.serviceName}</div>
+                        <div className="text-sm text-gray-600">{cheapestPlan.planName}</div>
+                        <div className="mt-2 text-primary-600 font-bold">{formatPrice(cheapestPlan.monthlyPrice)}</div>
+                      </>
+                    ) : (
+                      <div className="text-sm text-gray-500">-</div>
+                    )}
+                  </div>
+
+                  <div className="rounded-xl bg-white p-4 border border-gray-100">
+                    <div className="text-xs font-medium text-gray-500 mb-2">가장 높은 상위 플랜</div>
+                    {highestPlan ? (
+                      <>
+                        <div className="font-semibold text-gray-900">{highestPlan.serviceName}</div>
+                        <div className="text-sm text-gray-600">{highestPlan.planName}</div>
+                        <div className="mt-2 text-gray-900 font-bold">{formatPrice(highestPlan.monthlyPrice)}</div>
+                      </>
+                    ) : (
+                      <div className="text-sm text-gray-500">-</div>
+                    )}
+                  </div>
+
+                  <div className="rounded-xl bg-white p-4 border border-gray-100">
+                    <div className="text-xs font-medium text-gray-500 mb-2">선택한 서비스 간 가격 차이</div>
+                    <div className="font-semibold text-gray-900">{priceGap != null ? formatPrice(priceGap) : '-'}</div>
+                    <div className="mt-2 text-sm text-gray-500">가장 저렴한 시작 플랜과 가장 높은 상위 플랜의 차이</div>
+                  </div>
+
+                  <div className="rounded-xl bg-white p-4 border border-gray-100">
+                    <div className="text-xs font-medium text-gray-500 mb-2">시작 플랜 중앙값</div>
+                    <div className="font-semibold text-gray-900">{medianStartingPrice != null ? formatPrice(medianStartingPrice) : '-'}</div>
+                    <div className="mt-2 text-sm text-gray-500">초고가 플랜 영향이 적은 대표 시작 가격이에요</div>
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
         </Card>
         </div>
       )}

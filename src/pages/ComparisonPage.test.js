@@ -149,10 +149,15 @@ describe('ComparisonPage guest guidance', () => {
     fireEvent.click(screen.getByRole('button', { name: '비교하기' }));
 
     expect(await screen.findByText('대표 플랜')).toBeInTheDocument();
-    expect(screen.getByText('Plus')).toBeInTheDocument();
+    expect(screen.getAllByText('Plus').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Pro').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('43,000원')).toBeInTheDocument();
-    expect(screen.getByText('45,000원')).toBeInTheDocument();
+    expect(screen.getAllByText('43,000원').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('45,000원').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('가장 저렴한 시작 플랜')).toBeInTheDocument();
+    expect(screen.getByText('가장 높은 상위 플랜')).toBeInTheDocument();
+    expect(screen.getByText('선택한 서비스 간 가격 차이')).toBeInTheDocument();
+    expect(screen.getByText('시작 플랜 중앙값')).toBeInTheDocument();
+    expect(screen.getByText('16,000원')).toBeInTheDocument();
   });
 
   it('does not show the guest guidance modal for authenticated users', async () => {

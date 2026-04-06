@@ -46,12 +46,17 @@ const Header = () => {
     { path: '/optimization', label: '최적화' },
     // { path: '/tier', label: '티어' }, // 임시 숨김
   ];
+  const publicNavigationItems = [
+    { path: '/comparison', label: '서비스 비교' },
+    { path: '/preferences/test', label: '성향 테스트' },
+  ];
 
   // ADMIN 사용자에게만 관리자 메뉴 추가
   const isAdmin = user?.role === 'ADMIN';
   const allNavigationItems = isAdmin
     ? [...navigationItems, { path: '/admin', label: '관리자', isAdmin: true }]
     : navigationItems;
+  const visibleNavigationItems = isAuthenticated ? allNavigationItems : publicNavigationItems;
 
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-lg transition-all duration-200">
@@ -68,10 +73,10 @@ const Header = () => {
           </div>
 
           {/* 데스크톱 네비게이션 */}
-          {isAuthenticated && (
+          <>
             <>
               <nav className="hidden md:flex items-center space-x-1">
-                {allNavigationItems.map((item) => (
+                {visibleNavigationItems.map((item) => (
                   <Link
                     key={item.path}
                     to={item.path}
@@ -89,33 +94,51 @@ const Header = () => {
               </nav>
 
               <div className="hidden md:flex items-center space-x-3 pl-6">
-                {/* 알림 아이콘 */}
-                <button
-                  onClick={() => navigate('/notifications')}
-                  className="relative p-2.5 text-gray-500 hover:text-gray-900 transition-colors duration-200 rounded-full hover:bg-gray-100"
-                >
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                  </svg>
-                  {unreadCount > 0 && (
-                    <span className="absolute top-1.5 right-1.5 inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-red-500 rounded-full ring-2 ring-white">
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </span>
-                  )}
-                </button>
+                {isAuthenticated ? (
+                  <>
+                    <button
+                      onClick={() => navigate('/notifications')}
+                      className="relative p-2.5 text-gray-500 hover:text-gray-900 transition-colors duration-200 rounded-full hover:bg-gray-100"
+                    >
+                      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                      </svg>
+                      {unreadCount > 0 && (
+                        <span className="absolute top-1.5 right-1.5 inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-red-500 rounded-full ring-2 ring-white">
+                          {unreadCount > 9 ? '9+' : unreadCount}
+                        </span>
+                      )}
+                    </button>
 
-                <span className="text-[15px] text-gray-800 font-semibold px-2">
-                  {user?.name}님
-                </span>
-                <button
-                  onClick={handleLogout}
-                  className="px-4 py-2 text-[14px] font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors duration-200"
-                >
-                  로그아웃
-                </button>
+                    <span className="text-[15px] text-gray-800 font-semibold px-2">
+                      {user?.name}님
+                    </span>
+                    <button
+                      onClick={handleLogout}
+                      className="px-4 py-2 text-[14px] font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors duration-200"
+                    >
+                      로그아웃
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/login"
+                      className="px-4 py-2 text-[14px] font-semibold text-gray-600 hover:text-gray-900"
+                    >
+                      로그인
+                    </Link>
+                    <Link
+                      to="/signup"
+                      className="px-4 py-2 text-[14px] font-semibold text-white bg-primary-500 hover:bg-primary-600 rounded-xl transition-colors duration-200"
+                    >
+                      회원가입
+                    </Link>
+                  </>
+                )}
               </div>
             </>
-          )}
+          </>
 
           {/* 모바일 메뉴 버튼 */}
           <button
@@ -129,10 +152,10 @@ const Header = () => {
         </div>
 
         {/* 모바일 메뉴 */}
-        {isAuthenticated && isMobileMenuOpen && (
+        {isMobileMenuOpen && (
           <div className="md:hidden border-t border-gray-100 py-4 bg-white/95 backdrop-blur-sm absolute left-0 right-0 px-4 shadow-lg rounded-b-2xl">
             <nav className="space-y-1">
-              {allNavigationItems.map((item) => (
+              {visibleNavigationItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
@@ -150,29 +173,48 @@ const Header = () => {
               ))}
             </nav>
             <div className="border-t border-gray-100 pt-4 mt-4 space-y-2">
-              <button
-                onClick={() => {
-                  navigate('/notifications');
-                  setIsMobileMenuOpen(false);
-                }}
-                className="flex items-center justify-between w-full px-4 py-3.5 text-[15px] font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl"
-              >
-                <span>알림</span>
-                {unreadCount > 0 && (
-                  <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
-              <div className="px-4 py-2 text-sm text-gray-500 font-medium">
-                {user?.name}님으로 로그인됨
-              </div>
-              <button
-                onClick={handleLogout}
-                className="block w-full text-left px-4 py-3.5 text-[15px] text-red-600 hover:bg-red-50 rounded-xl font-semibold"
-              >
-                로그아웃
-              </button>
+              {isAuthenticated ? (
+                <>
+                  <button
+                    onClick={() => {
+                      navigate('/notifications');
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="flex items-center justify-between w-full px-4 py-3.5 text-[15px] font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl"
+                  >
+                    <span>알림</span>
+                    {unreadCount > 0 && (
+                      <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </button>
+                  <div className="px-4 py-2 text-sm text-gray-500 font-medium">
+                    {user?.name}님으로 로그인됨
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left px-4 py-3.5 text-[15px] text-red-600 hover:bg-red-50 rounded-xl font-semibold"
+                  >
+                    로그아웃
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    className="block w-full px-4 py-3.5 text-[15px] font-semibold text-gray-700 hover:bg-gray-50 rounded-xl"
+                  >
+                    로그인
+                  </Link>
+                  <Link
+                    to="/signup"
+                    className="block w-full px-4 py-3.5 text-[15px] font-semibold text-primary-600 hover:bg-primary-50 rounded-xl"
+                  >
+                    회원가입
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         )}

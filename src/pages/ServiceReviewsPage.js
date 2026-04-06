@@ -2,14 +2,17 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getReviewsByService, getServiceRating, deleteReview, checkUserReviewed } from '../services/reviewService';
 import { serviceService } from '../services/serviceService';
+import { useAuth } from '../context/AuthContext';
 import StarRating from '../components/StarRating';
 import ReviewModal from '../components/ReviewModal';
 import { Button, Card, EmptyState } from '../components/common';
 import Loading from '../components/Loading';
+import { setPostLoginRedirect } from '../utils/authFlow';
 
 const ServiceReviewsPage = () => {
   const { serviceId } = useParams();
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
   const [service, setService] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [rating, setRating] = useState(null);
@@ -17,34 +20,51 @@ const ServiceReviewsPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingReview, setEditingReview] = useState(null);
   const [hasReviewed, setHasReviewed] = useState(false);
-  const currentUserId = parseInt(localStorage.getItem('userId'));
+  const currentUserId = user?.id;
 
   const fetchData = useCallback(async () => {
     try {
-      const [serviceData, reviewsData, ratingData, hasReviewedData] = await Promise.all([
+      const [serviceData, reviewsData, ratingData] = await Promise.all([
         serviceService.getServiceById(serviceId),
         getReviewsByService(serviceId),
         getServiceRating(serviceId),
-        checkUserReviewed(serviceId),
       ]);
 
-      setService(serviceData);
+      setService(serviceData.data || serviceData);
       setReviews(reviewsData);
       setRating(ratingData);
-      setHasReviewed(hasReviewedData);
+
+      if (isAuthenticated) {
+        try {
+          const hasReviewedData = await checkUserReviewed(serviceId);
+          setHasReviewed(hasReviewedData);
+        } catch (error) {
+          console.warn('리뷰 작성 여부 확인 실패:', error);
+          setHasReviewed(false);
+        }
+      } else {
+        setHasReviewed(false);
+      }
     } catch (error) {
       console.error('데이터 조회 실패:', error);
       alert('데이터를 불러오지 못했어요. 다시 시도해주세요.');
     } finally {
       setLoading(false);
     }
-  }, [serviceId]);
+  }, [isAuthenticated, serviceId]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
   const handleWriteReview = () => {
+    if (!isAuthenticated) {
+      alert('리뷰 작성은 로그인 후 이용할 수 있어요.');
+      setPostLoginRedirect(`/services/${serviceId}/reviews`);
+      navigate('/login');
+      return;
+    }
+
     setEditingReview(null);
     setShowModal(true);
   };
@@ -98,7 +118,7 @@ const ServiceReviewsPage = () => {
                 variant="primary"
                 onClick={handleWriteReview}
               >
-                리뷰 작성하기
+                {isAuthenticated ? '리뷰 작성하기' : '로그인하고 리뷰 작성'}
               </Button>
             )}
           </div>
@@ -130,10 +150,10 @@ const ServiceReviewsPage = () => {
             <div className="p-12">
               <EmptyState
                 title="아직 작성된 리뷰가 없어요"
-                description={!hasReviewed ? "첫 리뷰를 작성해보세요!" : ""}
+                description={!hasReviewed ? (isAuthenticated ? '첫 리뷰를 작성해보세요!' : '로그인 후 첫 리뷰를 남길 수 있어요.') : ''}
                 icon="⭐"
                 action={!hasReviewed ? {
-                  label: '첫 리뷰 작성하기',
+                  label: isAuthenticated ? '첫 리뷰 작성하기' : '로그인하고 리뷰 작성',
                   onClick: handleWriteReview
                 } : undefined}
               />

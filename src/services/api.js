@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { setPostLoginRedirect } from '../utils/authFlow';
 
 // Axios 인스턴스 생성
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
@@ -31,8 +32,11 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response?.status === 401) {
+    const hasToken = !!localStorage.getItem('token');
+
+    if (error.response?.status === 401 && hasToken && !error.config?.skipAuthRedirect) {
       // 토큰 및 사용자 정보 제거
+      setPostLoginRedirect(`${window.location.pathname}${window.location.search}`);
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';

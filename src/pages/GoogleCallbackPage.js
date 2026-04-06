@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Loading from '../components/Loading';
+import { consumePostLoginRedirect } from '../utils/authFlow';
 
 const GoogleCallbackPage = () => {
   const navigate = useNavigate();
@@ -34,7 +35,8 @@ const GoogleCallbackPage = () => {
     googleLogin(code, redirectUri)
       .then((response) => {
         const isNewUser = response?.data?.isNewUser || response?.data?.newUser;
-        navigate(isNewUser ? '/recommendation/quiz' : '/dashboard');
+        const redirectPath = consumePostLoginRedirect();
+        navigate(redirectPath || (isNewUser ? '/recommendation/quiz' : '/dashboard'), { replace: true });
       })
       .catch((err) => {
         console.error('Google login error:', err);

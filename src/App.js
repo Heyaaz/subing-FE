@@ -45,7 +45,11 @@ const PrivateRoute = ({ children }) => {
       {children}
     </PageTransition>
   ) : (
-    <Navigate to="/login" />
+    <Navigate
+      to="/login"
+      state={{ from: `${location.pathname}${location.search}${location.hash}` }}
+      replace
+    />
   );
 };
 
@@ -65,6 +69,16 @@ const PublicRoute = ({ children }) => {
   ) : (
     <Navigate to="/dashboard" />
   );
+};
+
+const DefaultRoute = () => {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return <Loading text="페이지를 불러오는 중..." />;
+  }
+
+  return <Navigate to={isAuthenticated ? "/dashboard" : "/comparison"} replace />;
 };
 
 function App() {
@@ -138,12 +152,10 @@ function App() {
               <Route
                 path="/comparison"
                 element={
-                  <PrivateRoute>
-                    <div className="min-h-screen bg-gray-50">
-                      <Header />
-                      <ComparisonPage />
-                    </div>
-                  </PrivateRoute>
+                  <div className="min-h-screen bg-gray-50">
+                    <Header />
+                    <ComparisonPage />
+                  </div>
                 }
               />
               <Route
@@ -249,23 +261,17 @@ function App() {
               <Route
                 path="/services/:serviceId/reviews"
                 element={
-                  <PrivateRoute>
-                    <div className="min-h-screen bg-gray-50">
-                      <Header />
-                      <ServiceReviewsPage />
-                    </div>
-                  </PrivateRoute>
+                  <div className="min-h-screen bg-gray-50">
+                    <Header />
+                    <ServiceReviewsPage />
+                  </div>
                 }
               />
 
               {/* Preference Test Routes */}
               <Route
                 path="/preferences/test"
-                element={
-                  <PrivateRoute>
-                    <PreferenceTestPage />
-                  </PrivateRoute>
-                }
+                element={<PreferenceTestPage />}
               />
               <Route
                 path="/preferences/result"
@@ -330,7 +336,7 @@ function App() {
               />
 
               {/* Default redirect */}
-              <Route path="/" element={<Navigate to="/dashboard" />} />
+              <Route path="/" element={<DefaultRoute />} />
             </Routes>
           </Suspense>
         </div>

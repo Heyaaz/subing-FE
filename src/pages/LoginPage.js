@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Button, Input, Alert } from '../components/common';
+import { consumePostLoginRedirect, peekPostLoginRedirect, setPostLoginRedirect } from '../utils/authFlow';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -12,6 +13,7 @@ const LoginPage = () => {
 
   const { login, loading, error, clearError } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -64,7 +66,9 @@ const LoginPage = () => {
     try {
       clearError();
       await login(formData);
-      navigate('/dashboard');
+      const storedRedirect = consumePostLoginRedirect();
+      const redirectPath = location.state?.from ?? storedRedirect ?? '/dashboard';
+      navigate(redirectPath, { replace: true });
     } catch (error) {
       console.error('Login error:', error);
     }
@@ -107,6 +111,12 @@ const LoginPage = () => {
               const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
               const redirectUri = `${window.location.origin}/login/google/callback`;
               const scope = 'openid email profile';
+              const redirectPath = location.state?.from ?? peekPostLoginRedirect();
+
+              if (redirectPath) {
+                setPostLoginRedirect(redirectPath);
+              }
+
               const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&access_type=offline&prompt=consent`;
               window.location.href = url;
             }}

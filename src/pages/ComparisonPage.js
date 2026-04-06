@@ -1,19 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { serviceService } from '../services/serviceService';
-import { Button, Card, Badge, Alert } from '../components/common';
+import { Alert, Badge, Button, Card } from '../components/common';
 import Loading from '../components/Loading';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+
 
 const ComparisonPage = () => {
+  const navigate = useNavigate();
   const [services, setServices] = useState([]);
   const [selectedServices, setSelectedServices] = useState([]);
   const [comparisonResult, setComparisonResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [comparing, setComparing] = useState(false);
+  const { isAuthenticated } = useAuth();
   const [error, setError] = useState(null);
+  const [showGuestModal, setShowGuestModal] = useState(false);
+  const comparisonResultRef = useRef(null);
 
   useEffect(() => {
     loadServices();
   }, []);
+
+  useEffect(() => {
+    setShowGuestModal(!isAuthenticated);
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (comparisonResult && comparisonResultRef.current) {
+      comparisonResultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [comparisonResult]);
 
   const loadServices = async () => {
     try {
@@ -147,6 +164,7 @@ const ComparisonPage = () => {
 
       {/* 비교 결과 영역 */}
       {comparisonResult && (
+        <div ref={comparisonResultRef}>
         <Card>
           <h2 className="text-xl font-semibold text-gray-900 mb-6">비교 결과</h2>
 
@@ -234,6 +252,7 @@ const ComparisonPage = () => {
             </div>
           )}
         </Card>
+        </div>
       )}
 
       {/* 안내 메시지 */}
@@ -241,6 +260,37 @@ const ComparisonPage = () => {
         <Alert variant="info">
           비교할 서비스를 2개 이상 선택한 후 '비교하기' 버튼을 클릭해주세요.
         </Alert>
+      )}
+
+      {showGuestModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+            <h3 className="text-xl font-bold text-gray-900 mb-3">게스트로 둘러보기</h3>
+            <p className="text-gray-600 mb-6 leading-relaxed">
+              로그인하시면 대시보드, 구독 관리, 통계, 추천 같은 개인화 기능도 이어서 이용할 수 있어요.
+            </p>
+
+            <div className="space-y-3">
+              <Button
+                variant="primary"
+                onClick={() => {
+                  setShowGuestModal(false);
+                  navigate('/login');
+                }}
+                className="w-full"
+              >
+                로그인하러가기
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => setShowGuestModal(false)}
+                className="w-full"
+              >
+                둘러볼게요
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

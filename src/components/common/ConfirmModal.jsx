@@ -13,6 +13,7 @@ import { Button } from './index';
  * @param {string} confirmText - 확인 버튼 텍스트 (기본: "확인")
  * @param {string} cancelText - 취소 버튼 텍스트 (기본: "취소")
  * @param {string} variant - 확인 버튼 스타일 (danger, primary) (기본: "danger")
+ * @param {boolean} showCancel - 취소 버튼 표시 여부 (기본: true)
  */
 const ConfirmModal = ({
   isOpen,
@@ -22,12 +23,13 @@ const ConfirmModal = ({
   message,
   confirmText = '확인',
   cancelText = '취소',
-  variant = 'danger'
+  variant = 'danger',
+  showCancel = true,
 }) => {
   if (!isOpen) return null;
 
   const handleConfirm = () => {
-    onConfirm();
+    onConfirm?.();
     onClose();
   };
 
@@ -35,20 +37,22 @@ const ConfirmModal = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
         <h3 className="text-xl font-bold text-gray-900 mb-3">{title}</h3>
-        <p className="text-gray-600 mb-6">{message}</p>
+        <p className="text-gray-600 mb-6 leading-relaxed">{message}</p>
 
-        <div className="flex gap-3">
-          <Button
-            variant="secondary"
-            onClick={onClose}
-            className="flex-1"
-          >
-            {cancelText}
-          </Button>
+        <div className={`flex gap-3 ${showCancel ? '' : 'justify-end'}`}>
+          {showCancel && (
+            <Button
+              variant="secondary"
+              onClick={onClose}
+              className="flex-1"
+            >
+              {cancelText}
+            </Button>
+          )}
           {variant === 'danger' ? (
             <button
               onClick={handleConfirm}
-              className="flex-1 px-4 py-3 bg-error-500 hover:bg-error-600 text-white font-medium rounded-xl transition-colors"
+              className={`${showCancel ? 'flex-1' : 'w-full'} px-4 py-3 bg-error-500 hover:bg-error-600 text-white font-medium rounded-xl transition-colors`}
             >
               {confirmText}
             </button>
@@ -56,7 +60,7 @@ const ConfirmModal = ({
             <Button
               variant="primary"
               onClick={handleConfirm}
-              className="flex-1"
+              className={showCancel ? 'flex-1' : 'w-full'}
             >
               {confirmText}
             </Button>

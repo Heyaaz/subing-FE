@@ -48,10 +48,7 @@ function PreferenceProfilePage() {
   const handleConfirmRetake = async () => {
     setShowConfirmModal(false);
     try {
-      const user = authService.getCurrentUser();
-      if (user && user.id) {
-        await preferenceService.deleteProfile(user.id);
-      }
+      await preferenceService.deleteProfile();
       navigate('/preferences/test');
     } catch (error) {
       console.error('프로필 삭제 실패:', error);

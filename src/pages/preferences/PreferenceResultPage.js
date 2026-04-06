@@ -3,6 +3,11 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import preferenceService from '../../services/preferenceService';
 import { authService } from '../../services/authService';
 import { Toast } from '../../components/common';
+import {
+  clearPendingPreferenceAnswers,
+  getPendingPreferenceAnswers,
+  savePendingPreferenceAnswers,
+} from '../../utils/authFlow';
 
 function PreferenceResultPage() {
   const navigate = useNavigate();
@@ -24,11 +29,12 @@ function PreferenceResultPage() {
         return;
       }
 
-      const response = await preferenceService.submitAnswers(user.id, { answers });
+      const response = await preferenceService.submitAnswers({ answers });
       if (response.data && response.data.data) {
         setResult(response.data.data);
         setToastMessage('성향 프로필이 저장되었어요!');
         setShowToast(true);
+        clearPendingPreferenceAnswers();
       }
       setLoading(false);
     } catch (error) {
@@ -45,13 +51,15 @@ function PreferenceResultPage() {
     }
 
     // location.state에서 answers 가져오기
-    const answers = location.state?.answers || [];
+    const answers = location.state?.answers || getPendingPreferenceAnswers();
 
     if (answers.length === 0) {
       // 답변 데이터가 없으면 테스트 페이지로 리다이렉트
       navigate('/preferences/test');
       return;
     }
+
+    savePendingPreferenceAnswers(answers);
 
     // 답변 제출 및 결과 받기
     isSubmittingRef.current = true;
@@ -99,6 +107,7 @@ function PreferenceResultPage() {
   const profileType = {
     emoji: result.emoji,
     name: result.profileName,
+    quote: result.quote,
     description: result.quote,
     fullDescription: result.description
   };

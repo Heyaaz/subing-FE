@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import preferenceService from '../../services/preferenceService';
+import { useAuth } from '../../context/AuthContext';
+import { ConfirmModal } from '../../components/common';
+import { savePendingPreferenceAnswers, setPostLoginRedirect } from '../../utils/authFlow';
 
 // Mock 데이터 (API 로드 실패 시 사용)
 const MOCK_QUESTIONS = [
@@ -152,12 +155,14 @@ const MOCK_QUESTIONS = [
 
 function PreferenceTestPage() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [showIntro, setShowIntro] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [selectedOption, setSelectedOption] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   // 질문 목록 로드
   useEffect(() => {
@@ -205,6 +210,14 @@ function PreferenceTestPage() {
 
       // 마지막 질문이면 결과 페이지로
       if (currentIndex === questions.length - 1) {
+        savePendingPreferenceAnswers(newAnswers);
+
+        if (!isAuthenticated) {
+          setPostLoginRedirect('/preferences/result');
+          setShowLoginPrompt(true);
+          return;
+        }
+
         // 답변 데이터를 state로 전달
         navigate('/preferences/result', { state: { answers: newAnswers } });
       } else {
@@ -309,10 +322,18 @@ function PreferenceTestPage() {
             <p className="text-sm text-gray-500">
               이미 검사했다면{' '}
               <button
-                onClick={() => navigate('/preferences/profile')}
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    setPostLoginRedirect('/preferences/test');
+                    navigate('/login');
+                    return;
+                  }
+
+                  navigate('/preferences/profile');
+                }}
                 className="text-blue-600 hover:underline font-medium"
               >
-                결과 보기
+                {isAuthenticated ? '결과 보기' : '로그인하고 결과 저장하기'}
               </button>
             </p>
           </div>
@@ -395,14 +416,33 @@ function PreferenceTestPage() {
               ← 이전
             </button>
             <button
-              onClick={() => navigate('/preferences/profile')}
+              onClick={() => {
+                if (!isAuthenticated) {
+                  setPostLoginRedirect('/preferences/test');
+                  navigate('/login');
+                  return;
+                }
+
+                navigate('/preferences/profile');
+              }}
               className="flex-1 px-6 py-3 rounded-xl text-gray-600 font-medium hover:bg-gray-50 transition-all duration-200"
             >
-              건너뛰기 →
+              {isAuthenticated ? '결과 보기 →' : '로그인 후 결과 저장 →'}
             </button>
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        onConfirm={() => navigate('/login')}
+        title="로그인이 필요해요"
+        message="결과 분석과 저장은 로그인 후 이용할 수 있어요. 로그인하고 성향 결과를 이어서 확인해보세요."
+        confirmText="로그인하기"
+        cancelText="계속 둘러보기"
+        variant="primary"
+      />
     </div>
   );
 }

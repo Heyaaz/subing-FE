@@ -14,13 +14,12 @@ const preferenceService = {
 
   /**
    * 답변 제출 및 분석
-   * @param {number} userId - 사용자 ID
    * @param {Object} data - 답변 데이터
    * @param {Array} data.answers - [{questionId: 1, optionId: 2}, ...]
    * @returns {Promise} 분석 결과 (프로필 타입, 점수 등)
    */
-  submitAnswers: (userId, data) => {
-    return api.post(`/preferences/submit?userId=${userId}`, data);
+  submitAnswers: (data) => {
+    return api.post('/preferences/submit', data);
   },
 
   /**
@@ -33,11 +32,10 @@ const preferenceService = {
 
   /**
    * 성향 프로필 삭제 (재검사 준비)
-   * @param {number} userId - 사용자 ID
    * @returns {Promise}
    */
-  deleteProfile: (userId) => {
-    return api.delete(`/preferences/profile?userId=${userId}`);
+  deleteProfile: () => {
+    return api.delete('/preferences/profile');
   }
 };
 

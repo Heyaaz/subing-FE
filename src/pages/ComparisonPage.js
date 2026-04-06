@@ -82,6 +82,30 @@ const ComparisonPage = () => {
     setError(null);
   };
 
+
+  const getSortedPlans = (service) => {
+    return [...(service?.plans || [])]
+      .filter((plan) => plan?.monthlyPrice != null)
+      .sort((a, b) => a.monthlyPrice - b.monthlyPrice);
+  };
+
+  const formatPrice = (price) => {
+    if (price == null) {
+      return '-';
+    }
+    return `${price.toLocaleString()}원`;
+  };
+
+  const getPrimaryPlan = (service) => {
+    const plans = getSortedPlans(service);
+    return plans[0] || null;
+  };
+
+  const getPremiumPlan = (service) => {
+    const plans = getSortedPlans(service);
+    return plans.length > 1 ? plans[plans.length - 1] : null;
+  };
+
   /** API: website, plans(monthlyPrice) → 가격 범위 문자열 */
   const getPriceRange = (service) => {
     const plans = service?.plans;
@@ -202,6 +226,42 @@ const ComparisonPage = () => {
                       {service.description || '-'}
                     </td>
                   ))}
+                </tr>
+
+                {/* 대표 플랜 */}
+                <tr className="border-b border-gray-100">
+                  <td className="px-4 py-3 text-sm font-medium text-gray-700">대표 플랜</td>
+                  {comparisonResult.services?.map((service) => {
+                    const primaryPlan = getPrimaryPlan(service);
+                    return (
+                      <td key={service.id} className="px-4 py-3 text-center text-sm text-gray-700">
+                        {primaryPlan ? (
+                          <div className="space-y-1">
+                            <div className="font-semibold text-gray-900">{primaryPlan.planName}</div>
+                            <div className="text-primary-600">{formatPrice(primaryPlan.monthlyPrice)}</div>
+                          </div>
+                        ) : '-'}
+                      </td>
+                    );
+                  })}
+                </tr>
+
+                {/* 상위 플랜 */}
+                <tr className="border-b border-gray-100">
+                  <td className="px-4 py-3 text-sm font-medium text-gray-700">상위 플랜</td>
+                  {comparisonResult.services?.map((service) => {
+                    const premiumPlan = getPremiumPlan(service);
+                    return (
+                      <td key={service.id} className="px-4 py-3 text-center text-sm text-gray-700">
+                        {premiumPlan ? (
+                          <div className="space-y-1">
+                            <div className="font-semibold text-gray-900">{premiumPlan.planName}</div>
+                            <div className="text-gray-600">{formatPrice(premiumPlan.monthlyPrice)}</div>
+                          </div>
+                        ) : '-'}
+                      </td>
+                    );
+                  })}
                 </tr>
 
                 {/* 가격 범위 (plans 기준 min/max) */}

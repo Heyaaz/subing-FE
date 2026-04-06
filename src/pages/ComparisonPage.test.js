@@ -66,8 +66,24 @@ describe('ComparisonPage guest guidance', () => {
     serviceService.compareServices.mockResolvedValue({
       data: {
         services: [
-          { id: 1, name: '노션', category: 'PRODUCTIVITY' },
-          { id: 2, name: '슬랙', category: 'PRODUCTIVITY' },
+          {
+            id: 1,
+            name: '노션',
+            category: 'PRODUCTIVITY',
+            plans: [
+              { planName: '스탠다드', monthlyPrice: 1000 },
+              { planName: '프리미엄', monthlyPrice: 2000 },
+            ],
+          },
+          {
+            id: 2,
+            name: '슬랙',
+            category: 'PRODUCTIVITY',
+            plans: [
+              { planName: '스탠다드', monthlyPrice: 1500 },
+              { planName: '프리미엄', monthlyPrice: 2500 },
+            ],
+          },
         ],
         summary: {
           minPrice: 1000,
@@ -89,6 +105,54 @@ describe('ComparisonPage guest guidance', () => {
     await waitFor(() => {
       expect(scrollIntoViewMock).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
     });
+  });
+
+
+  it('shows concrete plan names and prices in the comparison table', async () => {
+    useAuth.mockReturnValue({ isAuthenticated: true });
+    serviceService.compareServices.mockResolvedValue({
+      data: {
+        services: [
+          {
+            id: 1,
+            name: '챗GPT',
+            category: 'AI',
+            plans: [
+              { planName: 'Plus', monthlyPrice: 29000 },
+              { planName: 'Pro', monthlyPrice: 43000 },
+            ],
+          },
+          {
+            id: 2,
+            name: '클로드',
+            category: 'AI',
+            plans: [
+              { planName: 'Pro', monthlyPrice: 29000 },
+              { planName: 'Max', monthlyPrice: 45000 },
+            ],
+          },
+        ],
+        summary: {
+          minPrice: 29000,
+          maxPrice: 45000,
+          avgPrice: 36500,
+          mostPopularService: '챗GPT',
+          bestValueService: '챗GPT',
+        },
+      },
+    });
+
+    render(<ComparisonPage />);
+
+    fireEvent.click(await screen.findByText('노션'));
+    fireEvent.click(screen.getByText('슬랙'));
+    fireEvent.click(screen.getByRole('button', { name: '비교하기' }));
+
+    expect(await screen.findByText('대표 플랜')).toBeInTheDocument();
+    expect(screen.getByText('Plus')).toBeInTheDocument();
+    expect(screen.getAllByText('Pro').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('43,000원')).toBeInTheDocument();
+    expect(screen.getByText('45,000원')).toBeInTheDocument();
   });
 
   it('does not show the guest guidance modal for authenticated users', async () => {
